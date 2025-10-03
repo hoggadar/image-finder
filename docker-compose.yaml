@@ -1,0 +1,43 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+
+  auth-service:
+    container_name: auth-service
+  
+  upload-service:
+    container_name: upload-service
+
+  image-loader-service:
+    container_name: image-loader-service
+
+  vector-loader-service:
+    container_name: vector-loader-service
+  
+  search-service:
+    container_name: search-service
+
+  auth-service-db:
+    image: postgres:16
+    container_name: auth-service-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: hoggadar
+      POSTGRES_PASSWORD: secure_password
+      POSTGRES_DB:
+    networks:
+      - image-finder-network
+    volumes:
+      - auth-service-db-data:/var/lib/postgresql/data
+  
+  image-storage:
+    container_name: image-storage
+   
+
+networks:
+  image-finder-network:
+    driver: bridge
+
+volumes:
+  auth-service-db-data:
