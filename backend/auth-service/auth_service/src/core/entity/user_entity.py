@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING
 from sqlalchemy import UUID, String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.entity.base import Base
+from auth_service.src.core.entity.base import Base
 
 if TYPE_CHECKING:
-    from core.entity.role_entity import RoleEntity
-    from core.entity.token_entity import TokenEntity
+    from auth_service.src.core.entity.role_entity import RoleEntity
+    from auth_service.src.core.entity.token_entity import TokenEntity
 
 
 class UserEntity(Base):

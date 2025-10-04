@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from config import config
-from api.v1.router.auth_router import auth_router
-from api.v1.router.token_router import token_router
-from api.v1.router.user_router import user_router
+from auth_service.src.config import config
+from auth_service.src.api.v1.router.auth_router import auth_router
+from auth_service.src.api.v1.router.token_router import token_router
+from auth_service.src.api.v1.router.user_router import user_router
 
 
 router_v1 = APIRouter(prefix=config.api.v1.prefix)

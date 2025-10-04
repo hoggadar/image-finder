@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from config import config
-from api.v1.router.base_router import router_v1
+from auth_service.src.config import config
+from auth_service.src.api.v1.router.base_router import router_v1
 
 
 router = APIRouter(prefix="{}{}".format(config.api.prefix, config.api.service_prefix))

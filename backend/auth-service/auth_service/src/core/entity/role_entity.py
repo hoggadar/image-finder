@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import UUID, String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.entity.base import Base
+from auth_service.src.core.entity.base import Base
 
 if TYPE_CHECKING:
-    from core.entity.user_entity import UserEntity
+    from auth_service.src.core.entity.user_entity import UserEntity
 
 
 class RoleEntity(Base):
