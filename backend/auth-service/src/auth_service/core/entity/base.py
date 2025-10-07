@@ -1,7 +1,7 @@
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
-from auth_service.src.config import config
+from src.auth_service.config import config
 
 
 class Base(DeclarativeBase):

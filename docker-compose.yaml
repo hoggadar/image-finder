@@ -5,7 +5,9 @@ services:
 
   auth:
     container_name: auth-service
-    build: path
+    build:
+      context: backend/auth-service/
+      dockerfile: Dockerfile
   
   upload:
     container_name: upload-service

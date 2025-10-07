@@ -3,7 +3,7 @@ name = "auth-service"
 version = "0.1.0"
 description = ""
 authors = ["Andrew Ermolenko <hoggadar@ya.ru>"]
-readme = "README.md"
+packages = [{include = "auth_service", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
