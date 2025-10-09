@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import UUID, String, Text, DateTime
+from sqlalchemy import ForeignKey, UUID, String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from auth_service.core.entity.base import Base
@@ -18,12 +18,14 @@ class UserEntity(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True)
     first_name: Mapped[str] = mapped_column(String(128), nullable=False)
     last_name: Mapped[str] = mapped_column(String(128), nullable=False)
-    user_name: Mapped[str] = mapped_column(String(256), nullable=False)
-    email: Mapped[str] = mapped_column(String(256), nullable=False)
-    password: Mapped[str] = mapped_column(String(256), nullable=False)
+    user_name: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(String(512), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     
-    role_id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True)
-    role: Mapped["RoleEntity"] = relationship(back_populates="roles.id")
+    role_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("roles.id"), nullable=False)
+    role: Mapped["RoleEntity"] = relationship(back_populates="users")
     
     token: Mapped["TokenEntity"] = relationship(back_populates="user")
     

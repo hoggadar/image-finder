@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from src.auth_service.config import config
+from auth_service.config import config
 
 class Database:
     def __init__(
@@ -41,7 +41,7 @@ class Database:
             
     async def test_connection(self):
         async with self.engine.connect() as conn:
-            result = await conn.execute(text("SELECT VERSION()"))
+            result = await conn.execute(text("SELECT version();"))
             print("Database version: ", result.all())
             
             
@@ -57,4 +57,4 @@ database = Database(
 )
 
 # test connection  
-asyncio.run(database.test_connection())
+# asyncio.run(database.test_connection())

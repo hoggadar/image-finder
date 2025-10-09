@@ -29,13 +29,13 @@ services:
 
   postgres:
     image: postgres:16
-    container_name: auth-service-db
+    container_name: postgres-db
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: hoggadar
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: auth_db
+      POSTGRES_DB: ifinder_auth
     networks:
       - image-finder-network
     volumes:
