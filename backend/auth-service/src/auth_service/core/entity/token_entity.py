@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, UUID, String, Text, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from auth_service.core.entity.base import Base
+from auth_service.core.entity.base_entity import Base
+# from auth_service.core.entity.user_entity import UserEntity
 
 if TYPE_CHECKING:
     from auth_service.core.entity.user_entity import UserEntity
