@@ -17,9 +17,10 @@ class TokenEntity(Base):
     
     id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True)
     value: Mapped[str] = mapped_column(String(512), nullable=False)
+    expires: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     
     user_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("users.id"), unique=True, nullable=False)
     user: Mapped["UserEntity"] = relationship(back_populates="token")

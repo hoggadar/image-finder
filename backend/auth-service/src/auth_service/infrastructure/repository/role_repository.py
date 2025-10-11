@@ -22,7 +22,7 @@ class RoleRepositoryImpl(RoleRepository):
             stmt = stmt.offset(offset).limit(limit)
             result = await self.session.execute(stmt)
             return result.scalars().all()
-        except Exception as e:
+        except Exception:
             return []
     
     
@@ -31,7 +31,7 @@ class RoleRepositoryImpl(RoleRepository):
             stmt = select(RoleEntity).where(RoleEntity.id == id)
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
-        except Exception as e:
+        except Exception:
             return None
     
     
@@ -40,7 +40,7 @@ class RoleRepositoryImpl(RoleRepository):
             stmt = select(RoleEntity).where(RoleEntity.name == name)
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
-        except Exception as e:
+        except Exception:
             return None
     
     
@@ -61,8 +61,7 @@ class RoleRepositoryImpl(RoleRepository):
             result = await self.session.execute(stmt)
             print(result)
             return result.scalar_one_or_none()
-        except Exception as e:
-            print(e)
+        except Exception:
             return None
         
         
@@ -80,7 +79,7 @@ class RoleRepositoryImpl(RoleRepository):
             )
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
-        except Exception as e:
+        except Exception:
             return None
     
     
@@ -93,6 +92,6 @@ class RoleRepositoryImpl(RoleRepository):
             )
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
-        except Exception as e:
+        except Exception:
             return None
         
