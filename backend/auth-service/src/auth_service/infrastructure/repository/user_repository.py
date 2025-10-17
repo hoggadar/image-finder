@@ -1,4 +1,5 @@
 import uuid
+import logging
 
 from sqlalchemy import insert, select, update, delete, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +40,7 @@ class UserRepositoryImpl(UserRepository):
         except Exception:
             return None
     
-    async def get_by_full_name(self, full_name: str, offset: int, limit: int) -> Sequence[UserEntity]:
+    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserEntity]:
         try:
             parts = full_name.strip().split()
             stmt = select(UserEntity).order_by(UserEntity.first_name.asc())
@@ -65,33 +66,29 @@ class UserRepositoryImpl(UserRepository):
         except Exception:
             return []
     
-    async def get_by_user_name(self, user_name: str, offset: int, limit: int) -> Sequence[UserEntity]:
+    async def get_by_user_name(self, user_name: str) -> Optional[UserEntity]:
         try:
             stmt = (
                 select(UserEntity)
-                .where(UserEntity.user_name.ilike(f"%{user_name}%"))
+                .where(UserEntity.user_name == user_name)
                 .order_by(UserEntity.user_name.asc())
-                .offset(offset)
-                .limit(limit)
             )
             result = await self.session.execute(stmt)
-            return result.scalars().all()
+            return result.scalar_one_or_none()
         except Exception:
-            return []
+            return None
     
-    async def get_by_email(self, email: str, offset: int, limit: int) -> Sequence[UserEntity]:
+    async def get_by_email(self, email: str) -> Optional[UserEntity]:
         try:
             stmt = (
                 select(UserEntity)
-                .where(UserEntity.email.ilike(f"%{email}%"))
+                .where(UserEntity.email == email)
                 .order_by(UserEntity.email.asc())
-                .offset(offset)
-                .limit(limit)
             )
             result = await self.session.execute(stmt)
-            return result.scalars().all()
+            return result.scalar_one_or_none()
         except Exception:
-            return []
+            return None
     
     async def create(self, user: UserEntity) -> Optional[UserEntity]:
         current_time = datetime.now(timezone.utc)
@@ -102,7 +99,7 @@ class UserRepositoryImpl(UserRepository):
                     id=uuid.uuid4(),
                     first_name=user.first_name,
                     last_name=user.last_name,
-                    user_name=user.user_name,
+                    username=user.username,
                     email=user.email,
                     password=user.password,
                     role_id=user.role_id,
@@ -111,9 +108,14 @@ class UserRepositoryImpl(UserRepository):
                 )
                 .returning(UserEntity)
             )
+            
+            # Important:
+            # SQLAlchemy Result objects are *consumed after one access* (e.g., scalar_one_or_none(), fetchall(), etc.).
+            # Calling these methods more than once closes the underlying cursor and raises ResourceClosedError.
+            
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
-        except Exception:
+        except Exception as e:
             return None
     
     async def update(self, user: UserEntity) -> Optional[UserEntity]:
@@ -124,7 +126,7 @@ class UserRepositoryImpl(UserRepository):
                 .values(
                     first_name=user.first_name,
                     last_name=user.last_name,
-                    user_name=user.user_name,
+                    username=user.username,
                     email=user.email,
                     password=user.password,
                     role_id=user.role_id,

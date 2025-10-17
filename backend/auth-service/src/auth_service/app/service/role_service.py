@@ -40,6 +40,7 @@ class RoleServiceImpl(RoleService):
         created = await self.role_repo.create(role)
         if not created:
             return None
+        await self.role_repo.session.commit()
         return self._entity_to_dto(created)
         
         
@@ -54,6 +55,7 @@ class RoleServiceImpl(RoleService):
         updated = await self.role_repo.update(existing_role)
         if not updated:
             return None
+        await self.role_repo.session.commit()
         return self._entity_to_dto(updated)
         
     
@@ -64,6 +66,7 @@ class RoleServiceImpl(RoleService):
         deleted = await self.role_repo.delete(id)
         if not deleted:
             return None
+        await self.role_repo.session.commit()
         return self._entity_to_dto(deleted)
     
     
