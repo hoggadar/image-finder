@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 from auth_service.core.entity.role_entity import RoleEntity
 from auth_service.core.entity.user_entity import UserEntity
-from auth_service.core.dto.role_dto import CreateRoleDTO
-from auth_service.core.dto.user_dto import CreateUserDTO
+from auth_service.api.v1.schema.user_schema import CreateUserSchema
+from auth_service.api.v1.schema.role_schema import CreateRoleSchema
 from auth_service.core.interface.service.role_service import RoleService
 from auth_service.core.interface.service.user_service import UserService
 
@@ -19,9 +19,9 @@ class DataSeeder:
     
     async def seed_roles(self):
         default_roles = [
-            CreateRoleDTO(name="Admin", description="Default"),
-            CreateRoleDTO(name="Moderator", description="Default"),
-            CreateRoleDTO(name="User", description="Default"),
+            CreateRoleSchema(name="Admin", description="Default"),
+            CreateRoleSchema(name="Moderator", description="Default"),
+            CreateRoleSchema(name="User", description="Default"),
         ]
         for role in default_roles:
             existing_role = await self.role_service.get_by_name(role.name)
@@ -31,7 +31,7 @@ class DataSeeder:
     
     async def seed_users(self):
         default_user = [
-            CreateUserDTO(
+            CreateUserSchema(
                 first_name="Andrew",
                 last_name="Ermolenko",
                 email="admin@admin",
@@ -39,7 +39,7 @@ class DataSeeder:
                 password="admin",
                 role="Admin"
             ),
-            CreateUserDTO(
+            CreateUserSchema(
                 first_name="Egor",
                 last_name="Iniankov",
                 email="e.iniankov@moderator",
@@ -47,7 +47,7 @@ class DataSeeder:
                 password="e.iniankov",
                 role="Moderator"
             ),
-            CreateUserDTO(
+            CreateUserSchema(
                 first_name="Lidia",
                 last_name="Olgejzer",
                 email="l.olgejzer@moderator",
@@ -55,7 +55,7 @@ class DataSeeder:
                 password="l.olgejzer",
                 role="Moderator"
             ),
-            CreateUserDTO(
+            CreateUserSchema(
                 first_name="Rahmonjhon",
                 last_name="Umarow",
                 email="r.umarov@user",

@@ -1,3 +1,5 @@
+from auth_service.api.exception.base_exception import BaseServiceError
+from auth_service.api.exception.exception_handler import base_service_error_handler
 import uvicorn
 import logging
 
@@ -16,7 +18,8 @@ from auth_service.infrastructure.db.data_seeder import DataSeeder
 
 setup_logger()
 
-app = FastAPI()  
+app = FastAPI()
+app.add_exception_handler(BaseServiceError, base_service_error_handler)
 app.include_router(router)
 
 

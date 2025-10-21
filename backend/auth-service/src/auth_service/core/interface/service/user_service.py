@@ -3,42 +3,42 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import Sequence, Optional
 
-from auth_service.core.dto.user_dto import UserDTO, CreateUserDTO, UpdateUserDTO, ChangePasswordDTO
+from auth_service.api.v1.schema.user_schema import UserSchema, CreateUserSchema, UpdateUserSchema, ChangePasswordSchema
 
 
 class UserService(ABC):
     @abstractmethod
-    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[UserDTO]:
+    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[UserSchema]:
         pass
     
     @abstractmethod
-    async def get_by_id(self, id: uuid.UUID) -> Optional[UserDTO]:
+    async def get_by_id(self, id: uuid.UUID) -> Optional[UserSchema]:
         pass
     
     @abstractmethod
-    async def get_by_fullname(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserDTO]:
+    async def get_by_fullname(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserSchema]:
         pass
     
     @abstractmethod
-    async def get_by_username(self, username: str) -> Optional[UserDTO]:
+    async def get_by_username(self, username: str) -> Optional[UserSchema]:
         pass
     
     @abstractmethod
-    async def get_by_email(self, email: str) -> Optional[UserDTO]:
+    async def get_by_email(self, email: str) -> Optional[UserSchema]:
         pass
     
     @abstractmethod
-    async def create(self, dto: CreateUserDTO) -> Optional[UserDTO]:
+    async def create(self, dto: CreateUserSchema) -> Optional[UserSchema]:
         pass
     
     @abstractmethod
-    async def update(self, dto: UpdateUserDTO) -> Optional[UserDTO]:
+    async def update(self, dto: UpdateUserSchema) -> Optional[UserSchema]:
         pass
     
     @abstractmethod
-    async def delete(self, id: uuid.UUID) -> Optional[UserDTO]:
+    async def delete(self, id: uuid.UUID) -> Optional[UserSchema]:
         pass
     
     @abstractmethod
-    async def change_password(self, dto: ChangePasswordDTO) -> bool:
+    async def change_password(self, dto: ChangePasswordSchema) -> bool:
         pass

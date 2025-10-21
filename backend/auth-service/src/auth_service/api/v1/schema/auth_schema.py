@@ -9,6 +9,6 @@ class LoginSchema(BaseModel):
 class SignupSchema(BaseModel):
     first_name: str
     last_name: str
-    user_name: str
+    username: str
     email: str
     password: str

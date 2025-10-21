@@ -6,33 +6,33 @@ from datetime import datetime, timezone
 from auth_service.core.interface.service.role_service import RoleService
 from auth_service.core.interface.repository.role_repository import RoleRepository
 from auth_service.core.entity.role_entity import RoleEntity
-from auth_service.core.dto.role_dto import RoleDTO, CreateRoleDTO, UpdateRoleDTO
+from auth_service.api.v1.schema.role_schema import RoleSchema, CreateRoleSchema, UpdateRoleSchema
 
 class RoleServiceImpl(RoleService):
     def __init__(self, role_repo: RoleRepository):
         self.role_repo = role_repo
     
     
-    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[RoleDTO]:
+    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[RoleSchema]:
         roles = await self.role_repo.get_all(offset=offset, limit=limit, search=search)
         return [self._entity_to_dto(role) for role in roles]
     
     
-    async def get_by_id(self, id: uuid.UUID) -> Optional[RoleDTO]:
+    async def get_by_id(self, id: uuid.UUID) -> Optional[RoleSchema]:
         role = await self.role_repo.get_by_id(id)
         if not role:
             return None
         return self._entity_to_dto(role)
     
     
-    async def get_by_name(self, name: str) -> Optional[RoleDTO]:
+    async def get_by_name(self, name: str) -> Optional[RoleSchema]:
         role = await self.role_repo.get_by_name(name)
         if not role:
             return None
         return self._entity_to_dto(role)
     
     
-    async def create(self, dto: CreateRoleDTO) -> Optional[RoleDTO]:
+    async def create(self, dto: CreateRoleSchema) -> Optional[RoleSchema]:
         role = RoleEntity(
             name=dto.name,
             description=dto.description
@@ -45,7 +45,7 @@ class RoleServiceImpl(RoleService):
         
         
     
-    async def update(self, dto: UpdateRoleDTO) -> Optional[RoleDTO]:
+    async def update(self, dto: UpdateRoleSchema) -> Optional[RoleSchema]:
         existing_role = await self.role_repo.get_by_id(dto.id)
         if not existing_role:
             return None
@@ -59,7 +59,7 @@ class RoleServiceImpl(RoleService):
         return self._entity_to_dto(updated)
         
     
-    async def delete(self, id: uuid.UUID) -> Optional[RoleDTO]:
+    async def delete(self, id: uuid.UUID) -> Optional[RoleSchema]:
         existing_role = await self.role_repo.get_by_id(id)
         if not existing_role:
             return None
@@ -70,8 +70,8 @@ class RoleServiceImpl(RoleService):
         return self._entity_to_dto(deleted)
     
     
-    def _entity_to_dto(self, entity: RoleEntity) -> RoleDTO:
-        return RoleDTO(
+    def _entity_to_dto(self, entity: RoleEntity) -> RoleSchema:
+        return RoleSchema(
             id=entity.id,
             name=entity.name,
             description=entity.description,
