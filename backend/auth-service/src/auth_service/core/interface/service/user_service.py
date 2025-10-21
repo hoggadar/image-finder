@@ -16,11 +16,11 @@ class UserService(ABC):
         pass
     
     @abstractmethod
-    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserDTO]:
+    async def get_by_fullname(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserDTO]:
         pass
     
     @abstractmethod
-    async def get_by_user_name(self, user_name: str) -> Optional[UserDTO]:
+    async def get_by_username(self, username: str) -> Optional[UserDTO]:
         pass
     
     @abstractmethod

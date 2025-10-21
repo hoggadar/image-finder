@@ -8,11 +8,11 @@ from auth_service.core.interface.repository.base_repository import BaseRepositor
 
 class UserRepository(BaseRepository[UserEntity, uuid.UUID]):
     @abstractmethod
-    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserEntity]:
+    async def get_by_fullname(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserEntity]:
         pass
     
     @abstractmethod
-    async def get_by_user_name(self, user_name: str) -> Optional[UserEntity]:
+    async def get_by_username(self, username: str) -> Optional[UserEntity]:
         pass
     
     @abstractmethod

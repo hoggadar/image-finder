@@ -30,12 +30,12 @@ class UserServiceImpl(UserService):
             return None
         return self._entity_to_dto(user)
     
-    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserDTO]:
-        users = await self.user_repo.get_by_full_name(full_name, offset=offset, limit=limit)
+    async def get_by_fullname(self, fullname: str, offset: int = 0, limit: int = 10) -> Sequence[UserDTO]:
+        users = await self.user_repo.get_by_fullname(fullname, offset=offset, limit=limit)
         return [self._entity_to_dto(user) for user in users]
 
-    async def get_by_user_name(self, user_name: str) -> Optional[UserDTO]:
-        user = await self.user_repo.get_by_user_name(user_name)
+    async def get_by_username(self, username: str) -> Optional[UserDTO]:
+        user = await self.user_repo.get_by_username(username)
         if not user:
             return None
         return self._entity_to_dto(user)
@@ -55,7 +55,7 @@ class UserServiceImpl(UserService):
         if existing_user:
             return None
         
-        existing_user = await self.user_repo.get_by_user_name(dto.username)
+        existing_user = await self.user_repo.get_by_username(dto.username)
         if existing_user:
             return None
         

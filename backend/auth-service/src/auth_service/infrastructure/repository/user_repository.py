@@ -19,12 +19,13 @@ class UserRepositoryImpl(UserRepository):
             stmt = select(UserEntity).order_by(UserEntity.id.asc())
             if search:
                 stmt = stmt.where(
-                    or_(
-                        UserEntity.first_name.ilike(f"%{search}%"),
-                        UserEntity.last_name.ilike(f"%{search}%"),
-                        UserEntity.user_name.ilike(f"%{search}%"),
-                        UserEntity.email.ilike(f"%{search}%"),
-                    )
+                    # or_(
+                    #     UserEntity.first_name.ilike(f"%{search}%"),
+                    #     UserEntity.last_name.ilike(f"%{search}%"),
+                    #     UserEntity.username.ilike(f"%{search}%"),
+                    #     UserEntity.email.ilike(f"%{search}%"),
+                    # )
+                    UserEntity.username.ilike(f"%{search}%"),
                 )
             stmt = stmt.offset(offset).limit(limit)
             result = await self.session.execute(stmt)
@@ -40,7 +41,7 @@ class UserRepositoryImpl(UserRepository):
         except Exception:
             return None
     
-    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserEntity]:
+    async def get_by_fullname(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserEntity]:
         try:
             parts = full_name.strip().split()
             stmt = select(UserEntity).order_by(UserEntity.first_name.asc())
@@ -66,12 +67,11 @@ class UserRepositoryImpl(UserRepository):
         except Exception:
             return []
     
-    async def get_by_user_name(self, user_name: str) -> Optional[UserEntity]:
+    async def get_by_username(self, username: str) -> Optional[UserEntity]:
         try:
             stmt = (
                 select(UserEntity)
-                .where(UserEntity.user_name == user_name)
-                .order_by(UserEntity.user_name.asc())
+                .where(UserEntity.username == username)
             )
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
