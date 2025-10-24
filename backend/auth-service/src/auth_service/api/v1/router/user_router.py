@@ -32,8 +32,7 @@ async def get_by_id(
     response_model=UserSchema,
     status_code=status.HTTP_200_OK
 ):
-    converted_id = Converter.get_uuid(id)
-    user = await user_service.get_by_id(converted_id)
+    user = await user_service.get_by_id(id)
     return user
 
 
@@ -100,7 +99,6 @@ async def delete(
     response_model=UserSchema,
     status_code=status.HTTP_200_OK
 ):
-    converted_id = Converter.get_uuid(id)
-    deleted_user = await user_service.delete(converted_id)
+    deleted_user = await user_service.delete(id)
     return deleted_user
 

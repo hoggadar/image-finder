@@ -17,7 +17,6 @@ from auth_service.api.exception.user_exception import UserNotFoundError, UserAlr
 from auth_service.api.exception.role_exception import RoleNotFoundError
 
 
-
 class UserServiceImpl(UserService):
     def __init__(self, user_repo: UserRepository, role_service: RoleService, session: AsyncSession):
         self.user_repo = user_repo
@@ -32,7 +31,7 @@ class UserServiceImpl(UserService):
         converted_id = Converter.get_uuid(id)
         user = await self.user_repo.get_by_id(converted_id)
         if not user:
-            raise UserNotFoundError(str(id))
+            raise UserNotFoundError(id)
         return self._entity_to_dto(user)
     
     async def get_by_fullname(self, fullname: str, offset: int = 0, limit: int = 10) -> Sequence[UserSchema]:
@@ -72,7 +71,7 @@ class UserServiceImpl(UserService):
             username=dto.username,
             email=dto.email,
             password=hashed_password,
-            role_id=role.id
+            role_id=role.id,
         )
         created_user = await self.user_repo.create(user)
         if not created_user:
@@ -106,12 +105,14 @@ class UserServiceImpl(UserService):
         await self.session.commit()
         return self._entity_to_dto(updated_user)
     
-    async def delete(self, id: uuid.UUID) -> Optional[UserSchema]:
-        user = await self.user_repo.get_by_id(id)
+    async def delete(self, id: str) -> Optional[UserSchema]:
+        logging.info("types of input: {} {}".format(type(id), type(Converter.get_uuid(id))))
+        converted_id = Converter.get_uuid(id)
+        user = await self.user_repo.get_by_id(converted_id)
         if not user:
-            raise UserNotFoundError(str(id))
+            raise UserNotFoundError(id)
 
-        deleted_user = await self.user_repo.delete(id)
+        deleted_user = await self.user_repo.delete(converted_id)
         if not deleted_user:
             await self.session.rollback()
             return None
@@ -123,12 +124,12 @@ class UserServiceImpl(UserService):
     
     def _entity_to_dto(self, entity: UserEntity) -> UserSchema:
         return UserSchema(
-            id=entity.id,
+            id=str(entity.id),
             first_name=entity.first_name,
             last_name=entity.last_name,
             username=entity.username,
             email=entity.email,
-            role_id=entity.role_id,
+            role_id=str(entity.role_id),
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )

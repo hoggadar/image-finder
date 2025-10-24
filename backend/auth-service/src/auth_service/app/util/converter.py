@@ -8,5 +8,5 @@ class Converter:
     def get_uuid(value: str):
         try:
             return uuid.UUID(value)
-        except Exception:
+        except ValueError:
             raise InvalidUUIDError(value)

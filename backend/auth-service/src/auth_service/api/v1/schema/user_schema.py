@@ -12,10 +12,10 @@ class UserSchemaBase(BaseModel):
 
 
 class UserSchema(UserSchemaBase):
-    id: uuid.UUID
+    id: str
     created_at: datetime
     updated_at: datetime
-    role_id: uuid.UUID
+    role_id: str
 
 
 class CreateUserSchema(UserSchemaBase):
