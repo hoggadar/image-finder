@@ -1,6 +1,6 @@
 import uuid
 
-from auth_service.api.exception.base_exception import InvalidUUIDError
+from auth_service.core.exception.base_exeption import InvalidUUIDException
 
 
 class Converter:
@@ -9,4 +9,4 @@ class Converter:
         try:
             return uuid.UUID(value)
         except ValueError:
-            raise InvalidUUIDError(value)
+            raise InvalidUUIDException(value)

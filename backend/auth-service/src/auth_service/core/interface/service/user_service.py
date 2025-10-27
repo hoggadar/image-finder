@@ -16,7 +16,7 @@ class UserService(ABC):
         pass
     
     @abstractmethod
-    async def get_by_fullname(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserSchema]:
+    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserSchema]:
         pass
     
     @abstractmethod

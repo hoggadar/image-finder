@@ -1,113 +1,219 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Sequence
-from auth_service.app.util.converter import Converter
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth_service.api.exception.token_exception import TokenAlreadyExistsError, TokenNotFoundError
+from auth_service.app.util.converter import Converter
 from auth_service.api.v1.schema.token_schema import CreateTokenSchema, TokenSchema, UpdateTokenSchema
-from auth_service.api.v1.schema.user_schema import UserSchema
 from auth_service.core.entity.token_entity import TokenEntity
 from auth_service.core.interface.repository.token_repository import TokenRepository
 from auth_service.core.interface.service.token_service import TokenService
+from auth_service.app.exception import (
+    TokenNotFoundException,
+    TokenAlreadyExistsException,
+    TokenCreationException,
+    TokenValidationException,
+    TokenRevocationException,
+    TokenRefreshException,
+)
+from auth_service.infrastructure.exception.repository_exception import (
+    RetrievalException,
+    CreationExeption,
+    UpdateException,
+    DeletionException,
+)
 
 
 class TokenServiceImpl(TokenService):
     def __init__(self, token_repo: TokenRepository, session: AsyncSession):
         self.token_repo = token_repo
         self.session = session
+        self.logger = logging.getLogger(__name__)
     
     async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[TokenSchema]:
-        tokens = await self.token_repo.get_all(offset=offset, limit=limit, search=search)
-        return [self._entity_to_dto(token) for token in tokens]
+        try:
+            tokens = await self.token_repo.get_all(offset=offset, limit=limit, search=search)
+            return [self._entity_to_dto(token) for token in tokens]
+        except RetrievalException as e:
+            self.logger.error(f"Failed to retrieve tokens: {e.message}", exc_info=True)
+            raise TokenNotFoundException()
     
-    async def get_by_id(self, id: str):
-        converted_id = Converter.get_uuid(id)
-        token = await self.token_repo.get_by_id(converted_id)
-        return self._entity_to_dto(token)
+    async def get_by_id(self, id: str) -> Optional[TokenSchema]:
+        try:
+            converted_id = Converter.get_uuid(id)
+            token = await self.token_repo.get_by_id(converted_id)
+            if not token:
+                self.logger.warning(f"Token with id '{id}' not found")
+                raise TokenNotFoundException()
+            return self._entity_to_dto(token)
+        except RetrievalException as e:
+            self.logger.error(f"Database error while retrieving token by id '{id}': {e.message}", exc_info=True)
+            raise TokenNotFoundException()
 
     async def get_by_value(self, value: str) -> Optional[TokenSchema]:
-        token = await self.token_repo.get_by_value(value)
-        if not token:
-            raise TokenNotFoundError(value)
-        return self._entity_to_dto(token)
+        try:
+            token = await self.token_repo.get_by_value(value)
+            if not token:
+                self.logger.warning(f"Token with value not found")
+                raise TokenNotFoundException(value)
+            return self._entity_to_dto(token)
+        except RetrievalException as e:
+            self.logger.error(f"Database error while retrieving token by value: {e.message}", exc_info=True)
+            raise TokenNotFoundException(value)
 
     async def get_by_user_id(self, user_id: str) -> Optional[TokenSchema]:
-        converted_user_id = Converter.get_uuid(user_id)
-        token = await self.token_repo.get_by_user_id(converted_user_id)
-        if not token:
-            raise TokenNotFoundError()
-        return self._entity_to_dto(token)
+        try:
+            converted_user_id = Converter.get_uuid(user_id)
+            token = await self.token_repo.get_by_user_id(converted_user_id)
+            if not token:
+                self.logger.warning(f"Token for user_id '{user_id}' not found")
+                raise TokenNotFoundException()
+            return self._entity_to_dto(token)
+        except RetrievalException as e:
+            self.logger.error(f"Database error while retrieving token by user_id '{user_id}': {e.message}", exc_info=True)
+            raise TokenNotFoundException()
 
     async def create(self, dto: CreateTokenSchema) -> Optional[TokenSchema]:
-        converted_user_id = Converter.get_uuid(dto.user_id)
-        existing_token = await self.token_repo.get_by_user_id(converted_user_id)
-        if existing_token:
-            raise TokenAlreadyExistsError(token.value)
-        
-        now = datetime.now(timezone.utc)
-        expires = now + timedelta(minutes=dto.expires)
-        token = TokenEntity(
-            value=dto.value,
-            expires=expires,
-            is_active=dto.is_active,
-            user_id=dto.user_id,
-        )
-        created_token = await self.token_repo.create(token)
-        if not created_token:
+        try:
+            converted_user_id = Converter.get_uuid(dto.user_id)
+            existing_token = await self.token_repo.get_by_user_id(converted_user_id)
+            if existing_token:
+                self.logger.warning(f"Token for user_id '{dto.user_id}' already exists")
+                raise TokenAlreadyExistsException(existing_token.value)
+            
+            now = datetime.now(timezone.utc)
+            expires = now + timedelta(minutes=dto.expires)
+            token = TokenEntity(
+                value=dto.value,
+                expires=expires,
+                is_active=dto.is_active,
+                user_id=converted_user_id,
+            )
+            
+            created_token = await self.token_repo.create(token)
+            if not created_token:
+                await self.session.rollback()
+                self.logger.error(f"Failed to create token for user_id '{dto.user_id}': repository returned None")
+                raise TokenCreationException("Token was not created")
+            
+            await self.session.commit()
+            return self._entity_to_dto(created_token)
+            
+        except TokenAlreadyExistsException:
             await self.session.rollback()
-            return None
-        await self.session.commit()
-        return created_token
+            raise
+        except (RetrievalException, CreationExeption) as e:
+            await self.session.rollback()
+            self.logger.error(f"Database error while creating token for user_id '{dto.user_id}': {e.message}", exc_info=True)
+            raise TokenCreationException(f"Failed to create token: {e.message}")
+        except Exception as e:
+            await self.session.rollback()
+            self.logger.error(f"Unexpected error while creating token for user_id '{dto.user_id}': {str(e)}", exc_info=True)
+            raise TokenCreationException(f"Unexpected error during token creation")
     
     async def update(self, dto: UpdateTokenSchema) -> Optional[TokenSchema]:
-        converted_id = Converter.get_uuid(dto.id)
-        existing_token = await self.token_repo.get_by_id(converted_id)
-        if existing_token:
-            raise TokenAlreadyExistsError(existing_token.value)
-        
-        existing_token.value = dto.value
-        existing_token.expires = dto.expires
-        existing_token.is_active = dto.is_active
-        existing_token.user_id = dto.user_id
-        existing_token.updated_at = datetime.now(timezone.utc)
-        
-        updated_token = await self.token_repo.update(existing_token)
-        if not updated_token:
+        try:
+            converted_id = Converter.get_uuid(dto.id)
+            existing_token = await self.token_repo.get_by_id(converted_id)
+            if not existing_token:
+                self.logger.warning(f"Token with id '{dto.id}' not found for update")
+                raise TokenNotFoundException()
+            
+            existing_token.value = dto.value
+            existing_token.expires = datetime.fromtimestamp(dto.expires, tz=timezone.utc)
+            existing_token.is_active = dto.is_active
+            existing_token.user_id = Converter.get_uuid(dto.user_id)
+            existing_token.updated_at = datetime.now(timezone.utc)
+            
+            updated_token = await self.token_repo.update(existing_token)
+            if not updated_token:
+                await self.session.rollback()
+                self.logger.error(f"Failed to update token '{dto.id}': repository returned None")
+                raise TokenValidationException("Token update failed")
+            
+            await self.session.commit()
+            return self._entity_to_dto(updated_token)
+            
+        except TokenNotFoundException:
             await self.session.rollback()
-            return None
-        await self.session.commit()
-        return self._entity_to_dto(updated_token)
+            raise
+        except (RetrievalException, UpdateException) as e:
+            await self.session.rollback()
+            self.logger.error(f"Database error while updating token '{dto.id}': {e.message}", exc_info=True)
+            raise TokenValidationException(f"Failed to update token: {e.message}")
+        except Exception as e:
+            await self.session.rollback()
+            self.logger.error(f"Unexpected error while updating token '{dto.id}': {str(e)}", exc_info=True)
+            raise TokenValidationException(f"Unexpected error during token update")
     
-    async def delete(self, id: str) -> TokenSchema:
-        converted_id = Converter.get_uuid(id)
-        token = await self.token_repo.get_by_id(converted_id)
-        if not token:
-            raise TokenNotFoundError(str(id))
-        
-        deleted_token = await self.token_repo.delete(converted_id)
-        if not deleted_token:
+    async def delete(self, id: str) -> Optional[TokenSchema]:
+        try:
+            converted_id = Converter.get_uuid(id)
+            token = await self.token_repo.get_by_id(converted_id)
+            if not token:
+                self.logger.warning(f"Token with id '{id}' not found for deletion")
+                raise TokenNotFoundException()
+            
+            deleted_token = await self.token_repo.delete(converted_id)
+            if not deleted_token:
+                await self.session.rollback()
+                self.logger.error(f"Failed to delete token '{id}': repository returned None")
+                raise TokenRevocationException("Token deletion failed")
+            
+            await self.session.commit()
+            return self._entity_to_dto(deleted_token)
+            
+        except TokenNotFoundException:
             await self.session.rollback()
-            return None 
-        await self.session.commit()
-        return self._entity_to_dto(deleted_token)
+            raise
+        except (RetrievalException, DeletionException) as e:
+            await self.session.rollback()
+            self.logger.error(f"Database error while deleting token '{id}': {e.message}", exc_info=True)
+            raise TokenRevocationException(f"Failed to delete token: {e.message}")
+        except Exception as e:
+            await self.session.rollback()
+            self.logger.error(f"Unexpected error while deleting token '{id}': {str(e)}", exc_info=True)
+            raise TokenRevocationException(f"Unexpected error during token deletion")
 
     async def deactivate(self, token_value: str) -> Optional[TokenSchema]:
-        token = await self.get_by_value(token_value)
-        token.is_active = False
-        updated_token = await self.token_repo.update(token)
-        if not updated_token:
+        try:
+            token_dto = await self.get_by_value(token_value)
+            token_entity = await self.token_repo.get_by_value(token_value)
+            if not token_entity:
+                raise TokenNotFoundException(token_value)
+            
+            token_entity.is_active = False
+            token_entity.updated_at = datetime.now(timezone.utc)
+            
+            updated_token = await self.token_repo.update(token_entity)
+            if not updated_token:
+                await self.session.rollback()
+                self.logger.error("Failed to deactivate token: repository returned None")
+                raise TokenRevocationException("Token deactivation failed")
+            
+            await self.session.commit()
+            return self._entity_to_dto(updated_token)
+            
+        except UpdateException as e:
             await self.session.rollback()
-            return None
-        await self.session.commit()
-        return updated_token
+            self.logger.error(f"Database error while deactivating token: {e.message}", exc_info=True)
+            raise TokenRevocationException(f"Failed to deactivate token: {e.message}")
+        except TokenNotFoundException:
+            await self.session.rollback()
+            raise
+        except Exception as e:
+            await self.session.rollback()
+            self.logger.error(f"Unexpected error while deactivating token: {str(e)}", exc_info=True)
+            raise TokenRevocationException(f"Unexpected error during token deactivation")
     
     def _entity_to_dto(self, entity: TokenEntity) -> TokenSchema:
         return TokenSchema(
             id=str(entity.id),
             value=entity.value,
-            expires=entity.expires,
+            expires=int(entity.expires.timestamp()),
             is_active=entity.is_active,
-            user_id=entity.user_id,
+            user_id=str(entity.user_id),
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )

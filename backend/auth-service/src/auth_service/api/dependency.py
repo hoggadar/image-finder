@@ -31,8 +31,11 @@ def get_token_repo(session: AsyncSession = Depends(database.get_session)):
 
 # Services
 
-def get_role_service(role_repo: RoleRepository = Depends(get_role_repo)):
-    return RoleServiceImpl(role_repo=role_repo)
+def get_role_service(
+    role_repo: RoleRepository = Depends(get_role_repo),
+    session: AsyncSession = Depends(database.get_session),
+):
+    return RoleServiceImpl(role_repo=role_repo, session=session)
 
 def get_user_service(
     user_repo: UserRepository = Depends(get_user_repo),
@@ -50,5 +53,6 @@ def get_token_service(
 def get_auth_service(
     user_service: UserService = Depends(get_user_service),
     token_service: TokenService = Depends(get_token_service),
+    session: AsyncSession = Depends(database.get_session),
 ):
-    return AuthServiceImpl(user_service=user_service, token_service=token_service)
+    return AuthServiceImpl(user_service=user_service, token_service=token_service, session=session)

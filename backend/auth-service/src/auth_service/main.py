@@ -1,10 +1,7 @@
-from auth_service.api.exception.base_exception import BaseServiceError
-from auth_service.api.exception.exception_handler import base_service_error_handler
 import uvicorn
 import logging
 
 from fastapi import FastAPI, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth_service.logger import setup_logger
 from auth_service.api.api import router
@@ -15,11 +12,15 @@ from auth_service.core.interface.service.user_service import UserService
 from auth_service.infrastructure.db.database import database
 from auth_service.infrastructure.db.data_seeder import DataSeeder
 
+# Exception handling
+from auth_service.core.exception.base_exeption import BaseAppException
+from auth_service.api.exception.exception_handler import base_app_exception_handler
+
 
 setup_logger()
 
 app = FastAPI()
-app.add_exception_handler(BaseServiceError, base_service_error_handler)
+app.add_exception_handler(BaseAppException, base_app_exception_handler)
 app.include_router(router)
 
 

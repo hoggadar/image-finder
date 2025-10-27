@@ -1,9 +1,13 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from auth_service.api.exception.base_exception import BaseServiceError
+from auth_service.core.exception.base_exeption import BaseAppException
 
 
-async def base_service_error_handler(request: Request, exc: BaseServiceError):
+async def base_app_exception_handler(request: Request, exc: BaseAppException):
+    """
+    Handler for all application-level exceptions that inherit from BaseAppException.
+    Returns a structured JSON response with status code, error details, and exception type.
+    """
     return JSONResponse(
         status_code=exc.status_code,
         content={
