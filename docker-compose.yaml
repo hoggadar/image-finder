@@ -1,0 +1,85 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+    build: path
+
+  auth:
+    container_name: auth-service
+    build:
+      context: backend/auth-service/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - image-finder-network
+  
+  upload:
+    container_name: upload-service
+    build: path
+
+  image-loader:
+    container_name: image-loader-service
+    build: path
+
+  vector-loader:
+    container_name: vector-loader-service
+    build: path
+  
+  search:
+    container_name: search-service
+    build: path
+
+  postgres:
+    image: postgres:16
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: hoggadar
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ifinder_auth
+    networks:
+      - image-finder-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  
+  minio:
+    image: image
+    container_name: image-loader-servicer-minio
+  
+  qdrant:
+    image: image
+    container_name: vector-loader-service-qdrant
+  
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: message-broker-rabbitmq
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - image-finder-network
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/data
+
+  image-storage:
+    container_name: image-storage
+    build: path
+  
+  vector-db:
+    container_name: vector-db
+    build: path
+  
+
+   
+
+networks:
+  image-finder-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
