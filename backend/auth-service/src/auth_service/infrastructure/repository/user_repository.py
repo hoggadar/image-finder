@@ -57,37 +57,6 @@ class UserRepositoryImpl(UserRepository):
                 message=message,
                 details={"id": str(id), "error": str(e)},
             )
-    
-    async def get_by_full_name(self, full_name: str, offset: int = 0, limit: int = 10) -> Sequence[UserEntity]:
-        try:
-            parts = full_name.strip().split()
-            stmt = select(UserEntity).order_by(UserEntity.first_name.asc())
-
-            if len(parts) == 1:
-                stmt = stmt.where(
-                    or_(
-                        UserEntity.first_name.ilike(f"%{parts[0]}%"),
-                        UserEntity.last_name.ilike(f"%{parts[0]}%"),
-                    )
-                )
-            elif len(parts) >= 2:
-                first, last = parts[0], parts[1]
-                stmt = stmt.where(
-                    and_(
-                        UserEntity.first_name.ilike(f"%{first}%"),
-                        UserEntity.last_name.ilike(f"%{last}%"),
-                    )
-                )
-            stmt = stmt.offset(offset).limit(limit)
-            result = await self.session.execute(stmt)
-            return result.scalars().all()
-        except Exception as e:
-            message = f"Failed to retrieve users by full name: '{full_name}'"
-            self.logger.error(f"{message}: {e}", exc_info=True)
-            raise RetrievalException(
-                message=message,
-                details={"full_name": full_name, "error": str(e)},
-            )
 
     async def get_by_username(self, username: str) -> Optional[UserEntity]:
         try:

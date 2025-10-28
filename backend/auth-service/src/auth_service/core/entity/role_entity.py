@@ -6,7 +6,6 @@ from sqlalchemy import UUID, String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from auth_service.core.entity.base_entity import Base
-# from auth_service.core.entity.user_entity import UserEntity
 
 if TYPE_CHECKING:
     from auth_service.core.entity.user_entity import UserEntity

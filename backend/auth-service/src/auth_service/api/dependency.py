@@ -51,8 +51,18 @@ def get_token_service(
     return TokenServiceImpl(token_repo=token_repo, session=session)
 
 def get_auth_service(
+    user_repo: UserRepository = Depends(get_user_repo),
+    token_repo: TokenRepository = Depends(get_token_repo),
     user_service: UserService = Depends(get_user_service),
+    role_service: RoleService = Depends(get_role_service),
     token_service: TokenService = Depends(get_token_service),
     session: AsyncSession = Depends(database.get_session),
 ):
-    return AuthServiceImpl(user_service=user_service, token_service=token_service, session=session)
+    return AuthServiceImpl(
+        user_repo=user_repo,
+        token_repo=token_repo,
+        user_service=user_service,
+        role_service=role_service,
+        token_service=token_service,
+        session=session
+    )

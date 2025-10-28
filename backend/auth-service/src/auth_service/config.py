@@ -12,6 +12,7 @@ class ApiV1Config(BaseModel):
     auth_prefix: str = "/auth"
     token_prefix: str = "/token"
     user_prefix: str = "/user"
+    role_prefix: str = "/role"
 
 
 class ApiConfig(BaseModel):

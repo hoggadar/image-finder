@@ -3,35 +3,47 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from dataclasses import dataclass
 
-from auth_service.core.entity.role_entity import RoleEntity
-from auth_service.core.entity.user_entity import UserEntity
-from auth_service.api.v1.schema.user_schema import CreateUserSchema
-from auth_service.api.v1.schema.role_schema import CreateRoleSchema
+from auth_service.core.dto.role_dto import CreateRoleDTO
+from auth_service.core.dto.user_dto import CreateUserDTO
 from auth_service.core.interface.service.role_service import RoleService
 from auth_service.core.interface.service.user_service import UserService
+from auth_service.app.exception import (
+    RoleNotFoundException,
+    RoleAlreadyExistsException,
+    UserNotFoundException,
+    UserAlreadyExistsException,
+)
 
 
 class DataSeeder:
     def __init__(self, role_service: RoleService, user_service: UserService):
         self.role_service = role_service
         self.user_service = user_service
+        self.logger = logging.getLogger(__name__)
     
     
     async def seed_roles(self):
         default_roles = [
-            CreateRoleSchema(name="Admin", description="Default"),
-            CreateRoleSchema(name="Moderator", description="Default"),
-            CreateRoleSchema(name="User", description="Default"),
+            CreateRoleDTO(name="Admin", description="Default"),
+            CreateRoleDTO(name="Moderator", description="Default"),
+            CreateRoleDTO(name="User", description="Default"),
         ]
         for role in default_roles:
-            existing_role = await self.role_service.get_by_name(role.name)
-            if not existing_role:
+            try:
+                existing_role = await self.role_service.get_by_name(role.name)
+                self.logger.info(f"Role '{role.name}' already exists, skipping creation")
+            except RoleNotFoundException:
                 await self.role_service.create(role)
+                self.logger.info(f"Successfully created role: {role.name}")
+            except RoleAlreadyExistsException:
+                self.logger.warning(f"Role '{role.name}' already exists (race condition)")
+            except Exception as e:
+                self.logger.error(f"Error processing role '{role.name}': {str(e)}", exc_info=True)
     
     
     async def seed_users(self):
         default_user = [
-            CreateUserSchema(
+            CreateUserDTO(
                 first_name="Andrew",
                 last_name="Ermolenko",
                 email="admin@admin",
@@ -39,7 +51,7 @@ class DataSeeder:
                 password="admin",
                 role="Admin"
             ),
-            CreateUserSchema(
+            CreateUserDTO(
                 first_name="Egor",
                 last_name="Iniankov",
                 email="e.iniankov@moderator",
@@ -47,7 +59,7 @@ class DataSeeder:
                 password="e.iniankov",
                 role="Moderator"
             ),
-            CreateUserSchema(
+            CreateUserDTO(
                 first_name="Lidia",
                 last_name="Olgejzer",
                 email="l.olgejzer@moderator",
@@ -55,7 +67,7 @@ class DataSeeder:
                 password="l.olgejzer",
                 role="Moderator"
             ),
-            CreateUserSchema(
+            CreateUserDTO(
                 first_name="Rahmonjhon",
                 last_name="Umarow",
                 email="r.umarov@user",
@@ -65,7 +77,14 @@ class DataSeeder:
             ),
         ]
         for user in default_user:
-            existing_user = await self.user_service.get_by_email(user.email)
-            if not existing_user:
+            try:
+                existing_user = await self.user_service.get_by_email(user.email)
+                self.logger.info(f"User with email '{user.email}' already exists, skipping creation")
+            except UserNotFoundException:
                 await self.user_service.create(user)
+                self.logger.info(f"Successfully created user: {user.username} ({user.email})")
+            except UserAlreadyExistsException:
+                self.logger.warning(f"User '{user.username}' already exists (race condition)")
+            except Exception as e:
+                self.logger.error(f"Error processing user '{user.email}': {str(e)}", exc_info=True)
             

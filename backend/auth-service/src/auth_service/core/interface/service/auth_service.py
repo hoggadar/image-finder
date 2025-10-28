@@ -2,21 +2,20 @@ import uuid
 
 from abc import ABC, abstractmethod
 
-from auth_service.api.v1.schema.auth_schema import LoginSchema, SignupSchema
-from auth_service.api.v1.schema.token_schema import TokenPairSchema
-from auth_service.core.dto.token_dto import TokenPayload
+from auth_service.core.dto.auth_dto import LoginDTO, SignupDTO
+from auth_service.core.dto.token_dto import AccessTokenPayloadDTO, TokensPairDTO, TokenValidationResultDTO
 
 class AuthService(ABC):
     @abstractmethod
-    def signup(schema: SignupSchema) -> TokenPairSchema:
+    def signup(dto: SignupDTO) -> TokensPairDTO:
         pass
     
     @abstractmethod
-    def login(schema: LoginSchema) -> TokenPairSchema:
+    def login(dto: LoginDTO) -> TokensPairDTO:
         pass
     
     @abstractmethod
-    def generate_access_token(payload: TokenPayload) -> str:
+    def generate_access_token(payload: AccessTokenPayloadDTO) -> str:
         pass
     
     @abstractmethod
@@ -24,13 +23,13 @@ class AuthService(ABC):
         pass
     
     @abstractmethod
-    def decode_token(access_token: str) -> TokenPayload:
+    def decode_token(access_token: str) -> AccessTokenPayloadDTO:
         pass
     
     @abstractmethod
-    def validate_refresh_token(refresh_token: str) -> bool:
+    def validate_access_token_with_role(access_token: str, required_role: str) -> TokenValidationResultDTO:
         pass
     
     @abstractmethod
-    def refresh_access_token(access_token: str, refresh_token: str) -> TokenPayload:
+    def refresh_access_token(access_token: str, refresh_token: str) -> TokensPairDTO:
         pass

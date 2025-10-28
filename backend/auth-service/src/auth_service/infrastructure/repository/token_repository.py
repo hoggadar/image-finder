@@ -12,7 +12,7 @@ from auth_service.infrastructure.exception.repository_exception import (
     UpdateException,
     DeletionException
 )
-from auth_service.core.entity.token_entity import TokenEntity
+from auth_service.core.entity.token_entity import RefreshTokenEntity
 from auth_service.core.interface.repository.token_repository import TokenRepository
 
 
@@ -21,15 +21,15 @@ class TokenRepositoryImpl(TokenRepository):
         self.session = session
         self.logger = logging.getLogger(__name__)
     
-    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[TokenEntity]:
+    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[RefreshTokenEntity]:
         try:
-            stmt = select(TokenEntity).order_by(TokenEntity.created_at.desc())
+            stmt = select(RefreshTokenEntity).order_by(RefreshTokenEntity.created_at.desc())
             if search:
                 stmt = stmt.where(
                     or_(
-                        TokenEntity.id.ilike(f"%{search}%"),
-                        TokenEntity.value.ilike(f"%{search}%"),
-                        TokenEntity.user_id.ilike(f"%{search}%")
+                        RefreshTokenEntity.id.ilike(f"%{search}%"),
+                        RefreshTokenEntity.value.ilike(f"%{search}%"),
+                        RefreshTokenEntity.user_id.ilike(f"%{search}%")
                     )
                 )
             stmt = stmt.offset(offset).limit(limit)
@@ -43,9 +43,9 @@ class TokenRepositoryImpl(TokenRepository):
                 details={"offset": offset, "limit": limit, "search": search, "error": str(e)},
             )
     
-    async def get_by_id(self, id: uuid.UUID) -> Optional[TokenEntity]:
+    async def get_by_id(self, id: uuid.UUID) -> Optional[RefreshTokenEntity]:
         try:
-            stmt = select(TokenEntity).where(TokenEntity.id == id)
+            stmt = select(RefreshTokenEntity).where(RefreshTokenEntity.id == id)
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
         except Exception as e:
@@ -56,9 +56,9 @@ class TokenRepositoryImpl(TokenRepository):
                 details={"id": str(id), "error": str(e)},
             )
     
-    async def get_by_value(self, value: str) -> Optional[TokenEntity]:
+    async def get_by_value(self, value: str) -> Optional[RefreshTokenEntity]:
         try:
-            stmt = select(TokenEntity).where(TokenEntity.value == value)
+            stmt = select(RefreshTokenEntity).where(RefreshTokenEntity.value == value)
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
         except Exception as e:
@@ -69,9 +69,9 @@ class TokenRepositoryImpl(TokenRepository):
                 details={"error": str(e)},
             )
     
-    async def get_by_user_id(self, user_id: uuid.UUID) -> Optional[TokenEntity]:
+    async def get_by_user_id(self, user_id: uuid.UUID) -> Optional[RefreshTokenEntity]:
         try:
-            stmt = select(TokenEntity).where(TokenEntity.user_id == user_id)
+            stmt = select(RefreshTokenEntity).where(RefreshTokenEntity.user_id == user_id)
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
         except Exception as e:
@@ -82,21 +82,21 @@ class TokenRepositoryImpl(TokenRepository):
                 details={"user_id": str(user_id), "error": str(e)},
             )
     
-    async def create(self, token: TokenEntity) -> Optional[TokenEntity]:
+    async def create(self, token: RefreshTokenEntity) -> Optional[RefreshTokenEntity]:
         current_time = datetime.now(timezone.utc)
         try:
             stmt = (
-                insert(TokenEntity)
+                insert(RefreshTokenEntity)
                 .values(
                     id=uuid.uuid4(),
                     value=token.value,
-                    expires=token.expires,
-                    is_active=token.is_active,
+                    is_locked=token.is_locked,
+                    expires_at=token.expires_at,
                     created_at=current_time,
                     updated_at=current_time,
                     user_id=token.user_id,
                 )
-                .returning(TokenEntity)
+                .returning(RefreshTokenEntity)
             )
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
@@ -107,23 +107,23 @@ class TokenRepositoryImpl(TokenRepository):
                 message=message,
                 details={
                     "user_id": str(token.user_id),
-                    "expires": str(token.expires),
+                    "expires_at": str(token.expires_at),
                     "error": str(e),
                 },
             )
     
-    async def update(self, token: TokenEntity) -> Optional[TokenEntity]:
+    async def update(self, token: RefreshTokenEntity) -> Optional[RefreshTokenEntity]:
         try:
             stmt = (
-                update(TokenEntity)
-                .where(TokenEntity.id == token.id)
+                update(RefreshTokenEntity)
+                .where(RefreshTokenEntity.id == token.id)
                 .values(
                     value=token.value,
                     expires=token.expires,
                     is_active=token.is_active,
                     updated_at=datetime.now(timezone.utc),
                 )
-                .returning(TokenEntity)
+                .returning(RefreshTokenEntity)
             )
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
@@ -135,9 +135,9 @@ class TokenRepositoryImpl(TokenRepository):
                 details={"id": str(token.id), "error": str(e)},
             )
     
-    async def delete(self, id: uuid.UUID) -> Optional[TokenEntity]:
+    async def delete(self, id: uuid.UUID) -> Optional[RefreshTokenEntity]:
         try:
-            stmt = delete(TokenEntity).where(TokenEntity.id == id).returning(TokenEntity)
+            stmt = delete(RefreshTokenEntity).where(RefreshTokenEntity.id == id).returning(RefreshTokenEntity)
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
         except Exception as e:

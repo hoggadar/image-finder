@@ -36,7 +36,7 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 from auth_service.core.entity.base_entity import Base
 from auth_service.core.entity.role_entity import RoleEntity
 from auth_service.core.entity.user_entity import UserEntity
-from auth_service.core.entity.token_entity import TokenEntity
+from auth_service.core.entity.token_entity import RefreshTokenEntity
 
 target_metadata = Base.metadata
 

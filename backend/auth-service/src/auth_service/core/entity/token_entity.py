@@ -6,21 +6,20 @@ from sqlalchemy import ForeignKey, UUID, String, Text, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from auth_service.core.entity.base_entity import Base
-# from auth_service.core.entity.user_entity import UserEntity
 
 if TYPE_CHECKING:
     from auth_service.core.entity.user_entity import UserEntity
 
 
-class TokenEntity(Base):
-    __tablename__ = "tokens"
+class RefreshTokenEntity(Base):
+    __tablename__ = "refresh_tokens"
     
     id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True)
     value: Mapped[str] = mapped_column(String(512), nullable=False)
-    expires: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_locked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     
     user_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("users.id"), unique=True, nullable=False)
-    user: Mapped["UserEntity"] = relationship(back_populates="token")
+    user: Mapped["UserEntity"] = relationship(back_populates="refresh_token")

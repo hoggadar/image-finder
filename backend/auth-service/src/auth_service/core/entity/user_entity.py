@@ -6,12 +6,10 @@ from sqlalchemy import ForeignKey, UUID, String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from auth_service.core.entity.base_entity import Base
-# from auth_service.core.entity.role_entity import RoleEntity
-# from auth_service.core.entity.token_entity import TokenEntity
 
 if TYPE_CHECKING:
     from auth_service.core.entity.role_entity import RoleEntity
-    from auth_service.core.entity.token_entity import TokenEntity
+    from auth_service.core.entity.token_entity import RefreshTokenEntity
 
 
 class UserEntity(Base):
@@ -29,5 +27,5 @@ class UserEntity(Base):
     role_id: Mapped[uuid.UUID] = mapped_column(UUID, ForeignKey("roles.id"), nullable=False)
     role: Mapped["RoleEntity"] = relationship(back_populates="users")
     
-    token: Mapped["TokenEntity"] = relationship(back_populates="user")
+    refresh_token: Mapped["RefreshTokenEntity"] = relationship(back_populates="user")
     

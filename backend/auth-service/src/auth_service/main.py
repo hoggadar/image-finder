@@ -11,8 +11,6 @@ from auth_service.core.interface.service.role_service import RoleService
 from auth_service.core.interface.service.user_service import UserService
 from auth_service.infrastructure.db.database import database
 from auth_service.infrastructure.db.data_seeder import DataSeeder
-
-# Exception handling
 from auth_service.core.exception.base_exeption import BaseAppException
 from auth_service.api.exception.exception_handler import base_app_exception_handler
 

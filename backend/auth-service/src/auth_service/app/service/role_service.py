@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from auth_service.core.interface.service.role_service import RoleService
 from auth_service.core.interface.repository.role_repository import RoleRepository
 from auth_service.core.entity.role_entity import RoleEntity
-from auth_service.api.v1.schema.role_schema import RoleSchema, CreateRoleSchema, UpdateRoleSchema
+from auth_service.core.dto.role_dto import RoleDTO, CreateRoleDTO, UpdateRoleDTO
 from auth_service.app.exception import (
     RoleNotFoundException,
     RoleAlreadyExistsException,
@@ -30,7 +30,7 @@ class RoleServiceImpl(RoleService):
         self.session = session
         self.logger = logging.getLogger(__name__)
     
-    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[RoleSchema]:
+    async def get_all(self, offset: int = 0, limit: int = 10, search: str = "") -> Sequence[RoleDTO]:
         try:
             roles = await self.role_repo.get_all(offset=offset, limit=limit, search=search)
             return [self._entity_to_dto(role) for role in roles]
@@ -38,7 +38,7 @@ class RoleServiceImpl(RoleService):
             self.logger.error(f"Failed to retrieve roles: {e.message}", exc_info=True)
             raise RoleNotFoundException("Unable to retrieve roles list")
     
-    async def get_by_id(self, id: uuid.UUID) -> Optional[RoleSchema]:
+    async def get_by_id(self, id: uuid.UUID) -> Optional[RoleDTO]:
         try:
             role = await self.role_repo.get_by_id(id)
             if not role:
@@ -49,7 +49,7 @@ class RoleServiceImpl(RoleService):
             self.logger.error(f"Database error while retrieving role by id '{id}': {e.message}", exc_info=True)
             raise RoleNotFoundException(str(id))
     
-    async def get_by_name(self, name: str) -> Optional[RoleSchema]:
+    async def get_by_name(self, name: str) -> Optional[RoleDTO]:
         try:
             role = await self.role_repo.get_by_name(name)
             if not role:
@@ -60,7 +60,7 @@ class RoleServiceImpl(RoleService):
             self.logger.error(f"Database error while retrieving role by name '{name}': {e.message}", exc_info=True)
             raise RoleNotFoundException(name)
     
-    async def create(self, dto: CreateRoleSchema) -> Optional[RoleSchema]:
+    async def create(self, dto: CreateRoleDTO) -> Optional[RoleDTO]:
         try:
             existing_role = await self.role_repo.get_by_name(dto.name)
             if existing_role:
@@ -93,7 +93,7 @@ class RoleServiceImpl(RoleService):
         
         
     
-    async def update(self, dto: UpdateRoleSchema) -> Optional[RoleSchema]:
+    async def update(self, dto: UpdateRoleDTO) -> Optional[RoleDTO]:
         try:
             existing_role = await self.role_repo.get_by_id(dto.id)
             if not existing_role:
@@ -131,7 +131,7 @@ class RoleServiceImpl(RoleService):
             raise RoleUpdateException(f"Unexpected error during role update")
         
     
-    async def delete(self, id: uuid.UUID) -> Optional[RoleSchema]:
+    async def delete(self, id: uuid.UUID) -> Optional[RoleDTO]:
         try:
             existing_role = await self.role_repo.get_by_id(id)
             if not existing_role:
@@ -160,8 +160,8 @@ class RoleServiceImpl(RoleService):
             raise RoleDeletionException(f"Unexpected error during role deletion")
     
     
-    def _entity_to_dto(self, entity: RoleEntity) -> RoleSchema:
-        return RoleSchema(
+    def _entity_to_dto(self, entity: RoleEntity) -> RoleDTO:
+        return RoleDTO(
             id=entity.id,
             name=entity.name,
             description=entity.description,

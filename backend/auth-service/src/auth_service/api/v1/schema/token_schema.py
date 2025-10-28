@@ -27,3 +27,20 @@ class TokenPairSchema(BaseModel):
     access_token: str
     refresh_token: str
 
+
+class RefreshTokenSchema(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
+class ValidateTokenSchema(BaseModel):
+    access_token: str
+    required_role: str
+
+
+class TokenValidationResponse(BaseModel):
+    is_valid: bool
+    user_id: str | None = None
+    role: str | None = None
+    has_required_role: bool = False
+    message: str | None = None
