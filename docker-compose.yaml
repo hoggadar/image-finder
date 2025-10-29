@@ -44,8 +44,19 @@ services:
       - postgres-data:/var/lib/postgresql/data
   
   minio:
-    image: image
-    container_name: image-loader-servicer-minio
+    image: minio/minio:latest
+    container_name: minio-s3
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    networks:
+      - image-finder-network
+    volumes:
+      - minio-data:/data
   
   qdrant:
     image: image
@@ -83,3 +94,4 @@ networks:
 volumes:
   postgres-data:
   rabbitmq-data:
+  minio-data:
