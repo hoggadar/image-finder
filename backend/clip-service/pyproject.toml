@@ -1,17 +1,19 @@
-[project]
+[tool.poetry]
 name = "clip-service"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Andrew Ermolenko",email = "hoggadar@ya.ru"}
-]
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-]
-
-[tool.poetry]
+authors = ["Andrew Ermolenko <hoggadar@ya.ru>"]
 packages = [{include = "clip_service", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.15"
+fastapi = {extras = ["standard"], version = "^0.120.1"}
+pydantic = "^2.12.3"
+pydantic-settings = "^2.11.0"
+uvicorn = "^0.38.0"
+transformers = "^4.57.1"
+torch-vision = "^0.1.6.dev0"
+torch = "^2.9.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
