@@ -15,11 +15,17 @@ def setup_logger(level: int = logging.INFO) -> None:
 
     class ColorFormatter(logging.Formatter):
         def format(self, record):
+            original_level = record.levelname
             level_color = COLORS.get(record.levelname, "")
             reset = COLORS["RESET"]
+
             record.levelname = f"{level_color}{record.levelname}{reset}"
-            record.asctime = datetime.fromtimestamp(record.created).strftime("%Y-%m-%d %H:%M:%S")
-            return super().format(record)
+            record.asctime = datetime.fromtimestamp(record.created, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+
+            try:
+                return super().format(record)
+            finally:
+                record.levelname = original_level
         
     formatter = ColorFormatter(
         fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
