@@ -1,7 +1,23 @@
 services:
   api-gateway:
     container_name: api-gateway
-    build: path
+    build:
+      context: backend/api-gateway/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - image-finder-network
+  
+  clip:
+    container_name: clip-service
+    build:
+      context: backend/clip-service/
+      dockerfile: Dockerfile
+    ports:
+      - "7070:8080"
+    networks:
+      - image-finder-network
 
   auth:
     container_name: auth-service
@@ -9,7 +25,7 @@ services:
       context: backend/auth-service/
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "6060:8080"
     networks:
       - image-finder-network
   
@@ -44,8 +60,19 @@ services:
       - postgres-data:/var/lib/postgresql/data
   
   minio:
-    image: image
-    container_name: image-loader-servicer-minio
+    image: minio/minio:latest
+    container_name: minio-s3
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    networks:
+      - image-finder-network
+    volumes:
+      - minio-data:/data
   
   qdrant:
     image: image
@@ -83,3 +110,4 @@ networks:
 volumes:
   postgres-data:
   rabbitmq-data:
+  minio-data:

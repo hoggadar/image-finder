@@ -17,7 +17,6 @@ class ApiV1Config(BaseModel):
 
 class ApiConfig(BaseModel):
     prefix: str = "/api"
-    service_prefix: str = "/auth-service"
     v1: ApiV1Config
 
 
