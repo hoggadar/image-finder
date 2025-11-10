@@ -20,7 +20,7 @@ user_router = APIRouter()
     status_code=status.HTTP_200_OK,
     response_model=Sequence[UserSchema],
 )
-@require_roles("Admin")
+@require_roles("Admin", "Moderator")
 async def get_all(
     user_service: UserApiServiceDep,
     offset: int = 0,

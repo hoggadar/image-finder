@@ -5,9 +5,11 @@ from api_gateway.api.api import router
 from api_gateway.api.exception.exception_handler import downstream_service_exception_handler
 from api_gateway.app.exception import DownstreamServiceException
 from api_gateway.config import config
+from api_gateway.logger import setup_logger
 
 
 def create_app() -> FastAPI:
+    setup_logger()
     app = FastAPI()
     app.add_exception_handler(DownstreamServiceException, downstream_service_exception_handler)
     app.include_router(router)
