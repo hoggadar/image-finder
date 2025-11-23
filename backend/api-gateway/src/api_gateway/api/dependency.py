@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Annotated, Dict
 
-from fastapi import Depends
+from fastapi import Depends, Request
 
 from api_gateway.app.service.auth.auth_api_service import AuthApiServiceImpl
 from api_gateway.app.service.auth.role_api_service import RoleApiServiceImpl
@@ -43,17 +43,60 @@ def get_role_api_service() -> RoleApiServiceImpl:
     return RoleApiServiceImpl(base_url=service_cfg.base_url, endpoints=endpoints)
 
 
+async def get_current_user_id(
+    request: Request,
+    auth_service: AuthApiServiceImpl = Depends(get_auth_api_service),
+) -> str:
+    """
+    Извлечь user_id из токена в заголовке Authorization.
+    
+    Эта функция должна использоваться после декоратора @require_roles,
+    который уже проверил валидность токена.
+    """
+    from api_gateway.api.v1.schema.auth import ValidateTokenSchema
+    from fastapi import HTTPException, status
+    
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header missing or malformed"
+        )
+    
+    token = auth_header.split(" ", 1)[1].strip()
+    # Валидируем токен с пустой ролью, чтобы просто получить user_id
+    # (требуется только валидный токен, роль не важна)
+    schema = ValidateTokenSchema(access_token=token, required_role="")
+    try:
+        response = await auth_service.validate_token(schema)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Failed to validate token"
+        ) from e
+    
+    if not response.is_valid or not response.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token or user_id not found"
+        )
+    
+    return response.user_id
+
+
 AuthApiServiceDep = Annotated[AuthApiServiceImpl, Depends(get_auth_api_service)]
 UserApiServiceDep = Annotated[UserApiServiceImpl, Depends(get_user_api_service)]
 RoleApiServiceDep = Annotated[RoleApiServiceImpl, Depends(get_role_api_service)]
+CurrentUserIdDep = Annotated[str, Depends(get_current_user_id)]
 
 
 __all__ = [
     "AuthApiServiceDep",
     "UserApiServiceDep",
     "RoleApiServiceDep",
+    "CurrentUserIdDep",
     "get_auth_api_service",
     "get_user_api_service",
     "get_role_api_service",
+    "get_current_user_id",
 ]
-
