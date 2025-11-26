@@ -1,5 +1,7 @@
 from fastapi import APIRouter, status
 
+from api_gateway.api.dependency import AuthApiServiceDep
+from api_gateway.api.tags import ApiTags
 from api_gateway.api.v1.schema.auth import (
     LoginSchema,
     SignupSchema,
@@ -8,10 +10,9 @@ from api_gateway.api.v1.schema.auth import (
     ValidateTokenSchema,
     RefreshTokenSchema,
 )
-from api_gateway.api.dependency import AuthApiServiceDep
 
 
-auth_router = APIRouter()
+auth_router = APIRouter(tags=[ApiTags.AUTH_AUTHENTICATION])
 
 
 @auth_router.post(

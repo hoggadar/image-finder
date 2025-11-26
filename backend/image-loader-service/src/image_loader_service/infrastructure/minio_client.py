@@ -23,8 +23,9 @@ class MinIOClient:
 
     def _ensure_bucket_exists(self) -> None:
         try:
-            if not self.client.bucket_exists(config.minio.bucket_name):
-                self.client.make_bucket(config.minio.bucket_name)
+            found = self.client.bucket_exists(bucket_name=config.minio.bucket_name)
+            if not found:
+                self.client.make_bucket(bucket_name=config.minio.bucket_name)
         except S3Error as e:
             logger.error(f"Error ensuring bucket exists: {e}")
             raise

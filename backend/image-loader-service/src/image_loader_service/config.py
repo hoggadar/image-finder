@@ -17,7 +17,7 @@ class RabbitMQConfig(BaseModel):
 class QueueConfig(BaseModel):
     image_queue: str = "image_upload_queue"
     exchange: str = "image_exchange"
-    routing_key: str = "image.upload"
+    image_routing_key: str = "image.upload"
 
 
 class MinIOConfig(BaseModel):

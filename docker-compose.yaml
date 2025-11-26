@@ -18,6 +18,9 @@ services:
       - "7070:8080"
     networks:
       - image-finder-network
+    environment:
+      CONFIG__APP__HOST: "0.0.0.0"
+      CONFIG__APP__PORT: 8080
 
   auth:
     container_name: auth-service
@@ -71,11 +74,25 @@ services:
 
   vector-loader:
     container_name: vector-loader-service
-    build: path
-  
-  search:
-    container_name: search-service
-    build: path
+    build:
+      context: backend/vector-loader-service/
+      dockerfile: Dockerfile
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__RABBITMQ__HOST: message-broker-rabbitmq
+      CONFIG__RABBITMQ__PORT: 5672
+      CONFIG__RABBITMQ__USER: guest
+      CONFIG__RABBITMQ__PASSWORD: guest
+      CONFIG__QDRANT__HOST: qdrant
+      CONFIG__QDRANT__PORT: 6333
+      CONFIG__CLIP_SERVICE__HOST: clip
+      CONFIG__CLIP_SERVICE__PORT: 8080
+    depends_on:
+      - rabbitmq
+      - rabbitmq-init
+      - qdrant
+      - clip
 
   postgres:
     image: postgres:16
@@ -142,10 +159,6 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-
-  image-storage:
-    container_name: image-storage
-    build: path
   
   qdrant:
     image: qdrant/qdrant:latest

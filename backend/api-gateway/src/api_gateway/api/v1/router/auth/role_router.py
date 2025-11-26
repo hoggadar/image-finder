@@ -2,16 +2,17 @@ from typing import Sequence
 
 from fastapi import APIRouter, status
 
+from api_gateway.api.dependency import RoleApiServiceDep
+from api_gateway.api.security import require_roles
+from api_gateway.api.tags import ApiTags
 from api_gateway.api.v1.schema.auth import (
     CreateRoleSchema,
     RoleSchema,
     UpdateRoleSchema,
 )
-from api_gateway.api.dependency import RoleApiServiceDep
-from api_gateway.api.security import require_roles
 
 
-role_router = APIRouter()
+role_router = APIRouter(tags=[ApiTags.AUTH_ROLES])
 
 
 @role_router.get(

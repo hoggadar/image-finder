@@ -2,20 +2,6 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class AppConfig(BaseModel):
-    host: str = "0.0.0.0"
-    port: int = 8080
-
-
-class ApiV1Config(BaseModel):
-    prefix: str = "/v1"
-
-
-class ApiConfig(BaseModel):
-    prefix: str = "/api"
-    v1: ApiV1Config = ApiV1Config()
-
-
 class RabbitMQConfig(BaseModel):
     host: str
     port: int = 5672
@@ -29,11 +15,25 @@ class RabbitMQConfig(BaseModel):
 
 
 class QueueConfig(BaseModel):
-    image_queue: str = "image_upload_queue"
     vector_queue: str = "vector_upload_queue"
     exchange: str = "image_exchange"
-    image_routing_key: str = "image.upload"
     vector_routing_key: str = "vector.upload"
+
+
+class QdrantConfig(BaseModel):
+    host: str
+    port: int = 6333
+    collection_name: str = "image_vectors"
+    vector_size: int = 512
+
+
+class ClipServiceConfig(BaseModel):
+    host: str = "clip"
+    port: int = 8080
+    
+    @property
+    def base_url(self) -> str:
+        return f"http://{self.host}:{self.port}"
 
 
 class Config(BaseSettings):
@@ -44,10 +44,10 @@ class Config(BaseSettings):
         case_sensitive=False,
     )
     
-    app: AppConfig = AppConfig()
-    api: ApiConfig = ApiConfig()
     rabbitmq: RabbitMQConfig
     queue: QueueConfig = QueueConfig()
+    qdrant: QdrantConfig
+    clip_service: ClipServiceConfig
 
 
 config = Config()

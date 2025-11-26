@@ -2,17 +2,18 @@ from typing import Sequence
 
 from fastapi import APIRouter, status
 
+from api_gateway.api.dependency import UserApiServiceDep
+from api_gateway.api.security import require_roles
+from api_gateway.api.tags import ApiTags
 from api_gateway.api.v1.schema.auth import (
     ChangePasswordSchema,
     CreateUserSchema,
     UpdateUserSchema,
     UserSchema,
 )
-from api_gateway.api.dependency import UserApiServiceDep
-from api_gateway.api.security import require_roles
 
 
-user_router = APIRouter()
+user_router = APIRouter(tags=[ApiTags.AUTH_USERS])
 
 
 @user_router.get(

@@ -27,12 +27,22 @@ RABBITMQ_CONFIG = {
             "durable": True,
             "arguments": {},
         },
+        {
+            "name": "vector_upload_queue",
+            "durable": True,
+            "arguments": {},
+        },
     ],
     "bindings": [
         {
             "queue": "image_upload_queue",
             "exchange": "image_exchange",
             "routing_key": "image.upload",
+        },
+        {
+            "queue": "vector_upload_queue",
+            "exchange": "image_exchange",
+            "routing_key": "vector.upload",
         },
     ],
 }

@@ -53,7 +53,12 @@ class RabbitMQClient:
 
         await self.exchange.publish(
             message,
-            routing_key=config.queue.routing_key,
+            routing_key=config.queue.image_routing_key,
+        )
+        
+        await self.exchange.publish(
+            message,
+            routing_key=config.queue.vector_routing_key,
         )
 
 
