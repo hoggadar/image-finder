@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 
 from api_gateway.api.dependency import RoleApiServiceDep
 from api_gateway.api.security import require_roles
@@ -8,6 +8,7 @@ from api_gateway.api.tags import ApiTags
 from api_gateway.api.v1.schema.auth import (
     CreateRoleSchema,
     RoleSchema,
+    TokenValidationResponse,
     UpdateRoleSchema,
 )
 
@@ -20,9 +21,9 @@ role_router = APIRouter(tags=[ApiTags.AUTH_ROLES])
     status_code=status.HTTP_200_OK,
     response_model=Sequence[RoleSchema],
 )
-@require_roles("Admin")
 async def get_all(
     role_service: RoleApiServiceDep,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
     offset: int = 0,
     limit: int = 10,
     search: str = "",
@@ -35,8 +36,11 @@ async def get_all(
     status_code=status.HTTP_200_OK,
     response_model=RoleSchema,
 )
-@require_roles("Admin")
-async def get_by_id(role_service: RoleApiServiceDep, id: str) -> RoleSchema:
+async def get_by_id(
+    role_service: RoleApiServiceDep,
+    id: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> RoleSchema:
     return await role_service.get_by_id(id)
 
 
@@ -45,8 +49,11 @@ async def get_by_id(role_service: RoleApiServiceDep, id: str) -> RoleSchema:
     status_code=status.HTTP_200_OK,
     response_model=RoleSchema,
 )
-@require_roles("Admin")
-async def get_by_name(role_service: RoleApiServiceDep, name: str) -> RoleSchema:
+async def get_by_name(
+    role_service: RoleApiServiceDep,
+    name: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> RoleSchema:
     return await role_service.get_by_name(name)
 
 
@@ -55,8 +62,11 @@ async def get_by_name(role_service: RoleApiServiceDep, name: str) -> RoleSchema:
     status_code=status.HTTP_201_CREATED,
     response_model=RoleSchema,
 )
-@require_roles("Admin")
-async def create(role_service: RoleApiServiceDep, payload: CreateRoleSchema) -> RoleSchema:
+async def create(
+    role_service: RoleApiServiceDep,
+    payload: CreateRoleSchema,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> RoleSchema:
     return await role_service.create(payload)
 
 
@@ -65,8 +75,11 @@ async def create(role_service: RoleApiServiceDep, payload: CreateRoleSchema) -> 
     status_code=status.HTTP_200_OK,
     response_model=RoleSchema,
 )
-@require_roles("Admin")
-async def update(role_service: RoleApiServiceDep, payload: UpdateRoleSchema) -> RoleSchema:
+async def update(
+    role_service: RoleApiServiceDep,
+    payload: UpdateRoleSchema,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> RoleSchema:
     return await role_service.update(payload)
 
 
@@ -75,8 +88,11 @@ async def update(role_service: RoleApiServiceDep, payload: UpdateRoleSchema) -> 
     status_code=status.HTTP_200_OK,
     response_model=RoleSchema,
 )
-@require_roles("Admin")
-async def delete(role_service: RoleApiServiceDep, id: str) -> RoleSchema:
+async def delete(
+    role_service: RoleApiServiceDep,
+    id: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> RoleSchema:
     return await role_service.delete(id)
 
 

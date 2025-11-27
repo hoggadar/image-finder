@@ -229,9 +229,9 @@ class Config(BaseSettings):
                     EndpointConfig(
                         name="UploadImage",
                         method="POST",
-                        gateway_path="/api/v1/upload/upload",
-                        service_path="/v1/upload",
-                        summary="Upload an image file to storage.",
+                        gateway_path="/api/v1/upload",
+                        service_path="/api/v1/upload",
+                        summary="Upload an image file to storage and send to processing queue.",
                     ),
                 ],
             ),

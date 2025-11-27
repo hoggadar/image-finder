@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Annotated, Dict
+from typing import Annotated, Dict, TYPE_CHECKING
 
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, status
 
 from api_gateway.app.service.auth.auth_api_service import AuthApiServiceImpl
 from api_gateway.app.service.auth.role_api_service import RoleApiServiceImpl
@@ -12,6 +12,9 @@ from api_gateway.app.service.clip_api_service import ClipApiServiceImpl
 from api_gateway.app.service.upload_api_service import UploadApiServiceImpl
 from api_gateway.app.service.search_api_service import SearchApiServiceImpl
 from api_gateway.config import config, ServiceConfig
+
+if TYPE_CHECKING:
+    from api_gateway.api.v1.schema.auth import TokenValidationResponse
 
 
 def _find_service_config(name: str) -> ServiceConfig:
@@ -68,44 +71,33 @@ def get_search_api_service() -> SearchApiServiceImpl:
 
 
 async def get_current_user_id(
-    request: Request,
-    auth_service: AuthApiServiceImpl = Depends(get_auth_api_service),
+    token_data: "TokenValidationResponse" = Depends(lambda: None),
 ) -> str:
-    """
-    Извлечь user_id из токена в заголовке Authorization.
-    
-    Эта функция должна использоваться после декоратора @require_roles,
-    который уже проверил валидность токена.
-    """
-    from api_gateway.api.v1.schema.auth import ValidateTokenSchema
-    from fastapi import HTTPException, status
-    
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    if token_data is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization header missing or malformed"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token validation not performed. Use require_roles or get_token_payload first."
         )
     
-    token = auth_header.split(" ", 1)[1].strip()
-    # Валидируем токен с пустой ролью, чтобы просто получить user_id
-    # (требуется только валидный токен, роль не важна)
-    schema = ValidateTokenSchema(access_token=token, required_role="")
-    try:
-        response = await auth_service.validate_token(schema)
-    except Exception as e:
+    if not token_data.user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Failed to validate token"
-        ) from e
-    
-    if not response.is_valid or not response.user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token or user_id not found"
+            detail="User ID not found in token"
         )
     
-    return response.user_id
+    return token_data.user_id
+
+
+def get_current_user_id_from_token(
+    token_data: "TokenValidationResponse",
+) -> str:
+    if not token_data.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User ID not found in token"
+        )
+    
+    return token_data.user_id
 
 
 AuthApiServiceDep = Annotated[AuthApiServiceImpl, Depends(get_auth_api_service)]
@@ -132,4 +124,5 @@ __all__ = [
     "get_upload_api_service",
     "get_search_api_service",
     "get_current_user_id",
+    "get_current_user_id_from_token",
 ]

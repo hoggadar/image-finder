@@ -9,6 +9,7 @@ class AppConfig(BaseModel):
 
 class ApiV1Config(BaseModel):
     prefix: str = "/v1"
+    upload_prefix: str = "/upload"
 
 
 class ApiConfig(BaseModel):
@@ -17,7 +18,7 @@ class ApiConfig(BaseModel):
 
 
 class RabbitMQConfig(BaseModel):
-    host: str
+    host: str = "localhost"
     port: int = 5672
     user: str = "guest"
     password: str = "guest"
@@ -37,16 +38,19 @@ class QueueConfig(BaseModel):
 
 
 class Config(BaseSettings):
+    """Main configuration for Upload Service."""
+    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_nested_delimiter="__",
         env_prefix="CONFIG__",
         case_sensitive=False,
+        extra="ignore",
     )
     
     app: AppConfig = AppConfig()
     api: ApiConfig = ApiConfig()
-    rabbitmq: RabbitMQConfig
+    rabbitmq: RabbitMQConfig = RabbitMQConfig()
     queue: QueueConfig = QueueConfig()
 
 

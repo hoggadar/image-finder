@@ -1,12 +1,12 @@
-import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
 
-from upload_service.api.router import router
+from upload_service.api.api import router
+from upload_service.api.tags import get_tags_metadata
 from upload_service.config import config
-from upload_service.infrastructure.rabbitmq import rabbitmq_client
+from upload_service.infrastructure.message_broker.rabbitmq_client import rabbitmq_client
 from upload_service.logger import setup_logger
 
 
@@ -19,12 +19,22 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    """Create and configure FastAPI application."""
     app = FastAPI(
         title="Upload Service",
-        description="Service for uploading images to user gallery",
+        description=(
+            "Service for uploading images to user gallery.\n\n"
+            "Images are validated and sent to RabbitMQ message queue for processing by:\n"
+            "- **Image Loader Service**: Stores images in MinIO S3\n"
+            "- **Vector Loader Service**: Generates CLIP embeddings for similarity search\n"
+        ),
+        version="1.0.0",
         lifespan=lifespan,
+        openapi_tags=get_tags_metadata(),
     )
-    app.include_router(router, prefix=config.api.v1.prefix)
+    
+    app.include_router(router)
+    
     return app
 
 
