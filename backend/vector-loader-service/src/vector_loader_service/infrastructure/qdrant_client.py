@@ -45,7 +45,7 @@ class QdrantClient:
         vector: List[float],
         user_id: str,
         object_name: str,
-        filename: str,
+        image_filename: str,
     ) -> str:
         try:
             point_id = str(uuid4())
@@ -54,11 +54,11 @@ class QdrantClient:
             point = PointStruct(
                 id=point_id,
                 vector=vector,
-                payload={
-                    "user_id": user_id,
-                    "object_name": object_name,
-                    "filename": filename,
-                },
+            payload={
+                "user_id": user_id,
+                "object_name": object_name,
+                "image_filename": image_filename,
+            },
             )
             
             logger.info(f"Upserting point to collection: {config.qdrant.collection_name}")

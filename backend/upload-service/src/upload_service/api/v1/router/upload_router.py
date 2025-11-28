@@ -21,15 +21,6 @@ async def upload_image(
     file: UploadFile = File(..., description="Image file to upload"),
     user_id: str = Form(..., description="ID of the user uploading the image"),
 ):
-    """
-    Upload an image to user's gallery.
-    
-    The uploaded image will be:
-    1. Validated (must be an image file)
-    2. Sent to RabbitMQ message queue
-    3. Processed by image-loader-service (saves to MinIO)
-    4. Processed by vector-loader-service (generates CLIP embeddings)
-    """
     if not file.content_type or not file.content_type.startswith("image/"):
         logger.warning(
             "Invalid file type uploaded",

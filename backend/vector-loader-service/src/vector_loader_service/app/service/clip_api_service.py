@@ -1,0 +1,111 @@
+from __future__ import annotations
+
+import logging
+from typing import Any, Dict, List
+
+from vector_loader_service.app.service.base_api_service import BaseApiServiceImpl
+from vector_loader_service.core.interface.service.clip_api_service import ClipApiService
+
+
+logger = logging.getLogger(__name__)
+
+
+class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
+    """HTTP client for CLIP service."""
+
+    def __init__(
+        self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 60.0
+    ) -> None:
+        super().__init__(base_url=base_url, timeout=timeout)
+        self._endpoints = endpoints
+
+    async def get_image_embedding(
+        self, image_data: bytes, image_filename: str
+    ) -> List[float]:
+        """
+        Get image embedding from CLIP service.
+        
+        Args:
+            image_data: Raw image bytes
+            image_filename: Original filename
+            
+        Returns:
+            List of floats representing the image embedding
+        """
+        logger.debug(
+            "Requesting image embedding from CLIP service",
+            extra={
+                "image_filename": image_filename,
+                "size": len(image_data),
+            }
+        )
+
+        files = {"image": (image_filename, image_data, "image/jpeg")}
+        data = {"text": ""}  # CLIP service requires text field, use empty string
+
+        response = await self.post(
+            self._endpoints["GetEmbeddings"],
+            data=data,
+            files=files,
+        )
+
+        embedding = response["image_embedding"]
+        
+        logger.info(
+            "Successfully received image embedding from CLIP service",
+            extra={
+                "image_filename": image_filename,
+                "embedding_dimension": len(embedding),
+            }
+        )
+
+        return embedding
+
+    async def get_text_embedding(self, text: str) -> List[float]:
+        """
+        Get text embedding from CLIP service.
+        
+        Note: CLIP service currently requires both image and text,
+        so this method creates a dummy image.
+        
+        Args:
+            text: Text to embed
+            
+        Returns:
+            List of floats representing the text embedding
+        """
+        logger.debug(
+            "Requesting text embedding from CLIP service",
+            extra={"text_length": len(text)}
+        )
+
+        # Create a simple 1x1 white image as placeholder
+        import io
+        from PIL import Image
+        
+        img = Image.new('RGB', (1, 1), color='white')
+        img_bytes = io.BytesIO()
+        img.save(img_bytes, format='JPEG')
+        img_bytes.seek(0)
+
+        files = {"image": ("placeholder.jpg", img_bytes.read(), "image/jpeg")}
+        data = {"text": text}
+
+        response = await self.post(
+            self._endpoints["GetEmbeddings"],
+            data=data,
+            files=files,
+        )
+
+        embedding = response["text_embedding"]
+        
+        logger.info(
+            "Successfully received text embedding from CLIP service",
+            extra={
+                "text_length": len(text),
+                "embedding_dimension": len(embedding),
+            }
+        )
+
+        return embedding
+
