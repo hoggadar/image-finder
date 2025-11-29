@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "rabbitmq-init"
+version = "0.1.0"
+description = "RabbitMQ infrastructure initialization script"
+authors = ["Andrew Ermolenko <hoggadar@ya.ru>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+aio-pika = "^9.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

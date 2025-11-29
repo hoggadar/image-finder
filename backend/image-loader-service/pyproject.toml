@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "image-loader-service"
+version = "0.1.0"
+description = ""
+authors = ["Andrew Ermolenko <hoggadar@ya.ru>"]
+packages = [{include = "image_loader_service", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+aio-pika = "^9.4.1"
+pydantic-settings = "^2.11.0"
+minio = "^7.2.8"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

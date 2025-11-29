@@ -1,0 +1,183 @@
+services:
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: backend/api-gateway/
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - image-finder-network
+  
+  clip:
+    container_name: clip-service
+    build:
+      context: backend/clip-service/
+      dockerfile: Dockerfile
+    ports:
+      - "7070:8080"
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__APP__HOST: "0.0.0.0"
+      CONFIG__APP__PORT: 8080
+
+  auth:
+    container_name: auth-service
+    build:
+      context: backend/auth-service/
+      dockerfile: Dockerfile
+    ports:
+      - "6060:8080"
+    networks:
+      - image-finder-network
+  
+  upload:
+    container_name: upload-service
+    build:
+      context: backend/upload-service/
+      dockerfile: Dockerfile
+    ports:
+      - "5050:8080"
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__RABBITMQ__HOST: message-broker-rabbitmq
+      CONFIG__RABBITMQ__PORT: 5672
+      CONFIG__RABBITMQ__USER: guest
+      CONFIG__RABBITMQ__PASSWORD: guest
+    depends_on:
+      - rabbitmq
+      - rabbitmq-init
+
+  image-loader:
+    container_name: image-loader-service
+    build:
+      context: backend/image-loader-service/
+      dockerfile: Dockerfile
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__RABBITMQ__HOST: message-broker-rabbitmq
+      CONFIG__RABBITMQ__PORT: 5672
+      CONFIG__RABBITMQ__USER: guest
+      CONFIG__RABBITMQ__PASSWORD: guest
+      CONFIG__MINIO__ENDPOINT: minio-s3:9000
+      CONFIG__MINIO__ACCESS_KEY: minioadmin
+      CONFIG__MINIO__SECRET_KEY: minioadmin
+      CONFIG__MINIO__SECURE: "false"
+      CONFIG__MINIO__BUCKET_NAME: images
+    depends_on:
+      - rabbitmq
+      - rabbitmq-init
+      - minio
+
+  vector-loader:
+    container_name: vector-loader-service
+    build:
+      context: backend/vector-loader-service/
+      dockerfile: Dockerfile
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__RABBITMQ__HOST: message-broker-rabbitmq
+      CONFIG__RABBITMQ__PORT: 5672
+      CONFIG__RABBITMQ__USER: guest
+      CONFIG__RABBITMQ__PASSWORD: guest
+      CONFIG__QDRANT__HOST: qdrant
+      CONFIG__QDRANT__PORT: 6333
+      CONFIG__CLIP_SERVICE__HOST: clip
+      CONFIG__CLIP_SERVICE__PORT: 8080
+    depends_on:
+      - rabbitmq
+      - rabbitmq-init
+      - qdrant
+      - clip
+
+  postgres:
+    image: postgres:16
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: hoggadar
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ifinder_auth
+    networks:
+      - image-finder-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  
+  minio:
+    image: minio/minio:latest
+    container_name: minio-s3
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    networks:
+      - image-finder-network
+    volumes:
+      - minio-data:/data
+  
+  
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: message-broker-rabbitmq
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - image-finder-network
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/data
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq-init:
+    container_name: rabbitmq-init
+    build:
+      context: backend/rabbitmq-init/
+      dockerfile: Dockerfile
+    networks:
+      - image-finder-network
+    environment:
+      RABBITMQ_HOST: message-broker-rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: vector-db
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    networks:
+      - image-finder-network
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+
+networks:
+  image-finder-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  minio-data:
+  qdrant-data:
