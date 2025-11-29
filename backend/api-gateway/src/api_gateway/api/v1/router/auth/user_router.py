@@ -1,18 +1,20 @@
 from typing import Sequence
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 
+from api_gateway.api.dependency import UserApiServiceDep
+from api_gateway.api.security import require_roles
+from api_gateway.api.tags import ApiTags
 from api_gateway.api.v1.schema.auth import (
     ChangePasswordSchema,
     CreateUserSchema,
+    TokenValidationResponse,
     UpdateUserSchema,
     UserSchema,
 )
-from api_gateway.api.dependency import UserApiServiceDep
-from api_gateway.api.security import require_roles
 
 
-user_router = APIRouter()
+user_router = APIRouter(tags=[ApiTags.AUTH_USERS])
 
 
 @user_router.get(
@@ -20,9 +22,9 @@ user_router = APIRouter()
     status_code=status.HTTP_200_OK,
     response_model=Sequence[UserSchema],
 )
-@require_roles("Admin", "Moderator")
 async def get_all(
     user_service: UserApiServiceDep,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin", "Moderator")),
     offset: int = 0,
     limit: int = 10,
     search: str = "",
@@ -35,8 +37,11 @@ async def get_all(
     status_code=status.HTTP_200_OK,
     response_model=UserSchema,
 )
-@require_roles("Admin")
-async def get_by_id(user_service: UserApiServiceDep, id: str) -> UserSchema:
+async def get_by_id(
+    user_service: UserApiServiceDep,
+    id: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> UserSchema:
     return await user_service.get_by_id(id)
 
 
@@ -45,8 +50,11 @@ async def get_by_id(user_service: UserApiServiceDep, id: str) -> UserSchema:
     status_code=status.HTTP_200_OK,
     response_model=UserSchema,
 )
-@require_roles("Admin")
-async def get_by_email(user_service: UserApiServiceDep, email: str) -> UserSchema:
+async def get_by_email(
+    user_service: UserApiServiceDep,
+    email: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> UserSchema:
     return await user_service.get_by_email(email)
 
 
@@ -55,8 +63,11 @@ async def get_by_email(user_service: UserApiServiceDep, email: str) -> UserSchem
     status_code=status.HTTP_200_OK,
     response_model=UserSchema,
 )
-@require_roles("Admin")
-async def get_by_username(user_service: UserApiServiceDep, username: str) -> UserSchema:
+async def get_by_username(
+    user_service: UserApiServiceDep,
+    username: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> UserSchema:
     return await user_service.get_by_username(username)
 
 
@@ -65,8 +76,11 @@ async def get_by_username(user_service: UserApiServiceDep, username: str) -> Use
     status_code=status.HTTP_201_CREATED,
     response_model=UserSchema,
 )
-@require_roles("Admin")
-async def create(user_service: UserApiServiceDep, payload: CreateUserSchema) -> UserSchema:
+async def create(
+    user_service: UserApiServiceDep,
+    payload: CreateUserSchema,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> UserSchema:
     return await user_service.create(payload)
 
 
@@ -75,8 +89,11 @@ async def create(user_service: UserApiServiceDep, payload: CreateUserSchema) -> 
     status_code=status.HTTP_200_OK,
     response_model=UserSchema,
 )
-@require_roles("Admin")
-async def update(user_service: UserApiServiceDep, payload: UpdateUserSchema) -> UserSchema:
+async def update(
+    user_service: UserApiServiceDep,
+    payload: UpdateUserSchema,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> UserSchema:
     return await user_service.update(payload)
 
 
@@ -85,8 +102,11 @@ async def update(user_service: UserApiServiceDep, payload: UpdateUserSchema) -> 
     status_code=status.HTTP_200_OK,
     response_model=UserSchema,
 )
-@require_roles("Admin")
-async def delete(user_service: UserApiServiceDep, id: str) -> UserSchema:
+async def delete(
+    user_service: UserApiServiceDep,
+    id: str,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
+) -> UserSchema:
     return await user_service.delete(id)
 
 
@@ -94,10 +114,10 @@ async def delete(user_service: UserApiServiceDep, id: str) -> UserSchema:
     "/change-password",
     status_code=status.HTTP_200_OK,
 )
-@require_roles("Admin")
 async def change_password(
     user_service: UserApiServiceDep,
     payload: ChangePasswordSchema,
+    token_data: TokenValidationResponse = Depends(require_roles("Admin")),
 ) -> None:
     await user_service.change_password(payload)
 

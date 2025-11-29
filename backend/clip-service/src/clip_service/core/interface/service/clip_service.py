@@ -23,3 +23,7 @@ class ClipService(ABC):
     async def compare_text_with_image_vector(self, text: str, image_embedding: Tensor) -> Tuple[float, float]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def get_image_embedding(self, image_bytes: bytes) -> Tensor:
+        raise NotImplementedError
+

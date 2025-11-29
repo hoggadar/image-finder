@@ -51,6 +51,10 @@ class ClipServiceImpl(ClipService):
         similarity, distance, _ = self._compute_similarity_metrics(normalized_image, text_embedding)
         return round(similarity, 4), round(distance, 4)
 
+    async def get_image_embedding(self, image_bytes: bytes) -> Tensor:
+        """Get embedding for an image without requiring text input."""
+        return await asyncio.to_thread(self._get_image_embedding_sync, image_bytes)
+
     def _calculate_similarity_sync(self, image_bytes: bytes, text: str) -> ClipSimilarityResultDTO:
         """Synchronous worker: compute similarity DTO for raw inputs."""
         if not text:
@@ -92,6 +96,11 @@ class ClipServiceImpl(ClipService):
 
         pil_image = self._load_image(image_bytes)
         return self._get_embeddings_from_image(pil_image, text)
+
+    def _get_image_embedding_sync(self, image_bytes: bytes) -> Tensor:
+        """Synchronous worker: build image embedding from raw image bytes."""
+        pil_image = self._load_image(image_bytes)
+        return self._get_image_embedding(pil_image)
 
     def _get_embeddings_from_image(self, pil_image: Image.Image, text: str) -> Tuple[Tensor, Tensor]:
         """Helper: derive image and text embeddings from decoded image."""

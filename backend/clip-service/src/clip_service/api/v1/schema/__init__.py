@@ -4,11 +4,13 @@ from .clip_schema import (
     CompareEmbeddingsResponse,
     CompareTextWithImageVectorRequest,
     EmbeddingsResponse,
+    ImageEmbeddingResponse,
 )
 
 __all__ = [
     "ClipSimilarityResponse",
     "EmbeddingsResponse",
+    "ImageEmbeddingResponse",
     "CompareEmbeddingsRequest",
     "CompareEmbeddingsResponse",
     "CompareTextWithImageVectorRequest",

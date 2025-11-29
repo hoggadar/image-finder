@@ -1,71 +1,110 @@
 from __future__ import annotations
 
 import logging
-from functools import wraps
-from inspect import Parameter, Signature, signature
 from typing import Iterable
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api_gateway.api.dependency import get_auth_api_service
-from api_gateway.api.v1.schema.auth import ValidateTokenSchema
+from api_gateway.api.v1.schema.auth import TokenValidationResponse, ValidateTokenSchema
 from api_gateway.core.interface.service.auth import AuthApiService
 
 
 logger = logging.getLogger(__name__)
 
+# HTTPBearer instance для автоматической интеграции со Swagger UI
+http_bearer = HTTPBearer(
+    scheme_name="Bearer",
+    description="Введите JWT токен",
+    auto_error=True,
+)
 
-def _build_role_guard(roles_to_check: Iterable[str]):
+
+async def get_token_payload(
+    credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
+    auth_service: AuthApiService = Depends(get_auth_api_service),
+) -> TokenValidationResponse:
+    token = credentials.credentials
+    
+    logger.debug(
+        "Token validation requested",
+        extra={"token_prefix": token[:10] if len(token) > 10 else "***"},
+    )
+
+    schema = ValidateTokenSchema(access_token=token, required_role="")
+    
+    try:
+        response = await auth_service.validate_token(schema)
+    except Exception:
+        logger.exception("Auth service validation request failed")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service unavailable",
+        )
+
+    if not response.is_valid:
+        error_detail = response.message or "Invalid or expired token"
+        logger.debug(
+            "Token validation failed",
+            extra={"detail": error_detail},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=error_detail,
+        )
+
+    logger.debug(
+        "Token validated successfully",
+        extra={
+            "user_id": response.user_id,
+            "role": response.role,
+        },
+    )
+
+    return response
+
+
+def require_roles(*roles: str):
+    roles_to_check: Iterable[str] = roles or ("",)
+
     async def role_guard(
-        request: Request,
+        credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
         auth_service: AuthApiService = Depends(get_auth_api_service),
-    ) -> None:
-        auth_header = request.headers.get("Authorization")
-        headers_snapshot = {
-            key: (value if key.lower() != "authorization" else "Bearer ***")
-            for key, value in request.headers.items()
-        }
-        query_string = str(request.url.query) if request.url.query else ""
+    ) -> TokenValidationResponse:
+        token = credentials.credentials
+        last_error_detail: str | None = None
+        last_response: TokenValidationResponse | None = None
 
         logger.debug(
             "Role guard invoked",
             extra={
-                "method": request.method,
-                "path": request.url.path,
-                "query": query_string,
-                "headers": headers_snapshot,
                 "required_roles": list(roles_to_check),
+                "token_prefix": token[:10] if len(token) > 10 else "***",
             },
         )
-
-        if not auth_header or not auth_header.startswith("Bearer "):
-            logger.debug(
-                "Authorization header missing or malformed",
-                extra={"path": request.url.path, "query": query_string},
-            )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authorization header missing or malformed",
-            )
-
-        token = auth_header.split(" ", 1)[1].strip()
-        last_error_detail: str | None = None
 
         for role in roles_to_check:
             logger.debug(
                 "Validating token against required role",
-                extra={"role": role, "path": request.url.path, "query": query_string},
+                extra={"role": role},
             )
+            
             schema = ValidateTokenSchema(access_token=token, required_role=role)
+            
             try:
                 response = await auth_service.validate_token(schema)
             except Exception:
                 logger.exception(
                     "Auth service validation request failed",
-                    extra={"role": role, "path": request.url.path, "query": query_string},
+                    extra={"role": role},
                 )
-                raise
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Authentication service unavailable",
+                )
 
+            last_response = response
             response_dump = response.model_dump()
 
             if not response.is_valid:
@@ -74,8 +113,6 @@ def _build_role_guard(roles_to_check: Iterable[str]):
                     "Token validation failed",
                     extra={
                         "role": role,
-                        "path": request.url.path,
-                        "query": query_string,
                         "detail": last_error_detail,
                         "validation_result": response_dump,
                     },
@@ -87,20 +124,17 @@ def _build_role_guard(roles_to_check: Iterable[str]):
                     "Access granted by role guard",
                     extra={
                         "role": role,
-                        "path": request.url.path,
-                        "query": query_string,
+                        "user_id": response.user_id,
                         "validation_result": response_dump,
                     },
                 )
-                return
+                return response
 
             last_error_detail = response.message or "Insufficient permissions"
             logger.debug(
                 "Token does not satisfy required role",
                 extra={
                     "role": role,
-                    "path": request.url.path,
-                    "query": query_string,
                     "detail": last_error_detail,
                     "validation_result": response_dump,
                 },
@@ -109,7 +143,7 @@ def _build_role_guard(roles_to_check: Iterable[str]):
         if last_error_detail == "Invalid or expired token":
             logger.debug(
                 "Access denied: token invalid or expired",
-                extra={"path": request.url.path, "query": query_string, "detail": last_error_detail},
+                extra={"detail": last_error_detail},
             )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -118,7 +152,11 @@ def _build_role_guard(roles_to_check: Iterable[str]):
 
         logger.debug(
             "Access denied: insufficient permissions",
-            extra={"path": request.url.path, "query": query_string, "detail": last_error_detail},
+            extra={
+                "detail": last_error_detail,
+                "user_role": last_response.role if last_response else None,
+                "required_roles": list(roles_to_check),
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -128,34 +166,5 @@ def _build_role_guard(roles_to_check: Iterable[str]):
     return role_guard
 
 
-def require_roles(*roles: str):
-    """Decorator enforcing that the requester possesses at least one of the given roles."""
-
-    roles_to_check: Iterable[str] = roles or ("",)
-    dependency = Depends(_build_role_guard(roles_to_check))
-
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            kwargs.pop("__role_guard", None)
-            return await func(*args, **kwargs)
-
-        # Extend signature with the dependency parameter to let FastAPI inject it
-        sig: Signature = signature(func)
-        params = list[Parameter](sig.parameters.values())
-        params.append(
-            Parameter(
-                "__role_guard",
-                kind=Parameter.KEYWORD_ONLY,
-                default=dependency,
-            )
-        )
-        wrapper.__signature__ = sig.replace(parameters=params)
-
-        return wrapper
-
-    return decorator
-
-
-__all__ = ["require_roles"]
+__all__ = ["require_roles", "get_token_payload", "http_bearer"]
 

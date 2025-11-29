@@ -1,5 +1,7 @@
 from fastapi import APIRouter, File, Form, UploadFile, status
 
+from api_gateway.api.dependency import ClipApiServiceDep
+from api_gateway.api.tags import ApiTags
 from api_gateway.api.v1.schema.clip import (
     ClipSimilarityResponse,
     CompareEmbeddingsRequest,
@@ -9,7 +11,7 @@ from api_gateway.api.v1.schema.clip import (
 )
 
 
-clip_router = APIRouter()
+clip_router = APIRouter(tags=[ApiTags.CLIP])
 
 
 @clip_router.post(
@@ -19,10 +21,11 @@ clip_router = APIRouter()
     response_model=ClipSimilarityResponse,
 )
 async def calculate_similarity(
+    clip_service: ClipApiServiceDep,
     image: UploadFile = File(..., description="Image for analysis"),
     text: str = Form(..., description="Text description for comparison"),
 ) -> ClipSimilarityResponse:
-    raise NotImplementedError("Gateway proxy for similarity calculation is not implemented yet")
+    return await clip_service.calculate_similarity(image, text)
 
 
 @clip_router.post(
@@ -32,10 +35,11 @@ async def calculate_similarity(
     response_model=EmbeddingsResponse,
 )
 async def get_embeddings(
+    clip_service: ClipApiServiceDep,
     image: UploadFile = File(..., description="Image for embedding generation"),
     text: str = Form(..., description="Text prompt for embedding generation"),
 ) -> EmbeddingsResponse:
-    raise NotImplementedError("Gateway proxy for embedding generation is not implemented yet")
+    return await clip_service.get_embeddings(image, text)
 
 
 @clip_router.post(
@@ -44,8 +48,11 @@ async def get_embeddings(
     summary="Compare similarity between provided image and text embeddings",
     response_model=CompareEmbeddingsResponse,
 )
-async def compare_embeddings(payload: CompareEmbeddingsRequest) -> CompareEmbeddingsResponse:
-    raise NotImplementedError("Gateway proxy for embedding comparison is not implemented yet")
+async def compare_embeddings(
+    clip_service: ClipApiServiceDep,
+    payload: CompareEmbeddingsRequest,
+) -> CompareEmbeddingsResponse:
+    return await clip_service.compare_embeddings(payload)
 
 
 @clip_router.post(
@@ -55,7 +62,8 @@ async def compare_embeddings(payload: CompareEmbeddingsRequest) -> CompareEmbedd
     response_model=CompareEmbeddingsResponse,
 )
 async def compare_text_with_image_vector(
+    clip_service: ClipApiServiceDep,
     payload: CompareTextWithImageVectorRequest,
 ) -> CompareEmbeddingsResponse:
-    raise NotImplementedError("Gateway proxy for text-image comparison is not implemented yet")
+    return await clip_service.compare_text_with_image_vector(payload)
 
