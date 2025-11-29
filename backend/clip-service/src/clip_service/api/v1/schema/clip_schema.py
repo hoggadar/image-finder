@@ -8,6 +8,10 @@ class EmbeddingsResponse(BaseModel):
     text_embedding: List[float] = Field(..., description="Vector representation of the provided text")
 
 
+class ImageEmbeddingResponse(BaseModel):
+    image_embedding: List[float] = Field(..., description="Vector representation of the uploaded image")
+
+
 class CompareEmbeddingsRequest(BaseModel):
     image_embedding: List[float] = Field(..., description="Embedding representing an image")
     text_embedding: List[float] = Field(..., description="Embedding representing a text prompt")

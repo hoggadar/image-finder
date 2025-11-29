@@ -20,6 +20,8 @@ def get_clip_api_service() -> ClipApiServiceImpl:
     return ClipApiServiceImpl(
         base_url=clip_service.base_url,
         endpoints=endpoints,
-        timeout=60.0,
+        timeout=30.0,  # Timeout for single request
+        max_retries=3,  # Retry up to 3 times  
+        retry_delay=2.0,  # Start with 2s, exponential backoff
     )
 

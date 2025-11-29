@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any, Mapping, MutableMapping, Optional
 
@@ -14,9 +15,18 @@ logger = logging.getLogger(__name__)
 class BaseApiServiceImpl(BaseApiService):
     """Concrete base class providing common HTTP helper methods for downstream services."""
 
-    def __init__(self, base_url: str, *, timeout: float = 30.0) -> None:
+    def __init__(
+        self, 
+        base_url: str, 
+        *, 
+        timeout: float = 30.0,
+        max_retries: int = 3,
+        retry_delay: float = 2.0,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
 
     async def request(
         self,
@@ -42,26 +52,48 @@ class BaseApiServiceImpl(BaseApiService):
             },
         )
 
-        try:
-            async with httpx.AsyncClient(timeout=request_timeout) as client:
-                response = await client.request(
-                    method=method,
-                    url=url,
-                    params=params,
-                    headers=headers,
-                    json=json,
-                    data=data,
-                    files=files,
+        last_exception = None
+        for attempt in range(self.max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=request_timeout) as client:
+                    response = await client.request(
+                        method=method,
+                        url=url,
+                        params=params,
+                        headers=headers,
+                        json=json,
+                        data=data,
+                        files=files,
+                    )
+                break  # Success, exit retry loop
+            except (httpx.ConnectError, httpx.TimeoutException) as exc:
+                last_exception = exc
+                if attempt < self.max_retries - 1:
+                    delay = self.retry_delay * (2 ** attempt)  # Exponential backoff
+                    logger.warning(
+                        f"Connection failed (attempt {attempt + 1}/{self.max_retries}), retrying in {delay}s",
+                        extra={"url": url, "error": str(exc)}
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error(
+                        "Failed to reach downstream service after all retries",
+                        extra={
+                            "url": url,
+                            "error": str(exc),
+                            "attempts": self.max_retries,
+                        }
+                    )
+                    raise RuntimeError(f"Failed to reach service at {url} after {self.max_retries} attempts: {exc}") from exc
+            except httpx.RequestError as exc:
+                logger.exception(
+                    "Failed to reach downstream service",
+                    extra={
+                        "url": url,
+                        "error": str(exc),
+                    }
                 )
-        except httpx.RequestError as exc:
-            logger.exception(
-                "Failed to reach downstream service",
-                extra={
-                    "url": url,
-                    "error": str(exc),
-                }
-            )
-            raise RuntimeError(f"Failed to reach service at {url}: {exc}") from exc
+                raise RuntimeError(f"Failed to reach service at {url}: {exc}") from exc
 
         if response.status_code >= 400:
             payload = self._safe_json(response)

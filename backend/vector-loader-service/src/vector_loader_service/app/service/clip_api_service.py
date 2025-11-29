@@ -32,22 +32,32 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
         Returns:
             List of floats representing the image embedding
         """
-        logger.debug(
+        logger.info(
             "Requesting image embedding from CLIP service",
             extra={
                 "image_filename": image_filename,
                 "size": len(image_data),
+                "endpoint": self._endpoints["GetImageEmbedding"],
             }
         )
 
         files = {"image": (image_filename, image_data, "image/jpeg")}
-        data = {"text": ""}  # CLIP service requires text field, use empty string
 
-        response = await self.post(
-            self._endpoints["GetEmbeddings"],
-            data=data,
-            files=files,
-        )
+        try:
+            response = await self.post(
+                self._endpoints["GetImageEmbedding"],
+                files=files,
+            )
+        except Exception as e:
+            logger.error(
+                "Failed to get image embedding from CLIP service",
+                extra={
+                    "image_filename": image_filename,
+                    "error": str(e),
+                    "endpoint": self._endpoints["GetImageEmbedding"],
+                }
+            )
+            raise
 
         embedding = response["image_embedding"]
         

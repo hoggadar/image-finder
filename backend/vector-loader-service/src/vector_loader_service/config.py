@@ -87,6 +87,11 @@ class Config(BaseSettings):
                         summary="Get image and text embeddings from CLIP model",
                     ),
                     EndpointConfig(
+                        name="GetImageEmbedding",
+                        service_path="/api/v1/clip/image-embedding",
+                        summary="Get image embedding from CLIP model",
+                    ),
+                    EndpointConfig(
                         name="CalculateSimilarity",
                         service_path="/api/v1/clip/similarity",
                         summary="Calculate similarity between image and text",
