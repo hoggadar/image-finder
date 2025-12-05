@@ -8,6 +8,11 @@ services:
       - "8080:8080"
     networks:
       - image-finder-network
+    depends_on:
+      - auth
+      - clip
+      - upload
+      - search
   
   clip:
     container_name: clip-service
@@ -91,6 +96,25 @@ services:
     depends_on:
       - rabbitmq
       - rabbitmq-init
+      - qdrant
+      - clip
+
+  search:
+    container_name: search-service
+    build:
+      context: backend/search-service/
+      dockerfile: Dockerfile
+    ports:
+      - "4040:8080"
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__APP__HOST: "0.0.0.0"
+      CONFIG__APP__PORT: 8080
+      CONFIG__QDRANT__HOST: qdrant
+      CONFIG__QDRANT__PORT: 6333
+      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://clip-service:8080
+    depends_on:
       - qdrant
       - clip
 

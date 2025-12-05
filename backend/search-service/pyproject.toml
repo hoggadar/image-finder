@@ -1,0 +1,23 @@
+[project]
+name = "search-service"
+version = "0.1.0"
+description = "Image search service using CLIP embeddings and Qdrant"
+authors = [
+    {name = "Andrew Ermolenko", email = "hoggadar@ya.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard] (>=0.121.0,<0.122.0)",
+    "pydantic (>=2.12.4,<3.0.0)",
+    "pydantic-settings (>=2.11.0,<3.0.0)",
+    "httpx (>=0.27.0,<0.28.0)",
+    "qdrant-client (>=1.13.0,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "search_service", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

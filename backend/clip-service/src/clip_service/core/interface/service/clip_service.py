@@ -27,3 +27,7 @@ class ClipService(ABC):
     async def get_image_embedding(self, image_bytes: bytes) -> Tensor:
         raise NotImplementedError
 
+    @abstractmethod
+    async def get_text_embedding(self, text: str) -> Tensor:
+        raise NotImplementedError
+

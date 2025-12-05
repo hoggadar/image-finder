@@ -55,6 +55,10 @@ class ClipServiceImpl(ClipService):
         """Get embedding for an image without requiring text input."""
         return await asyncio.to_thread(self._get_image_embedding_sync, image_bytes)
 
+    async def get_text_embedding(self, text: str) -> Tensor:
+        """Get embedding for text without requiring image input."""
+        return await asyncio.to_thread(self._get_text_embedding, text)
+
     def _calculate_similarity_sync(self, image_bytes: bytes, text: str) -> ClipSimilarityResultDTO:
         """Synchronous worker: compute similarity DTO for raw inputs."""
         if not text:
