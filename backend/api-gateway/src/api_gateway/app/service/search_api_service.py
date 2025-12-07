@@ -27,7 +27,7 @@ class SearchApiServiceImpl(BaseApiServiceImpl, SearchApiService):
             payload["user_id"] = user_id
             
         response = await self.post(
-            "/api/v1/search",
+            "/api/v1/search/",  # Note: trailing slash required by FastAPI
             json=payload,
         )
         return response

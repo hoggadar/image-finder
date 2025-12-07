@@ -36,6 +36,8 @@ services:
       - "6060:8080"
     networks:
       - image-finder-network
+    depends_on:
+      - postgres
   
   upload:
     container_name: upload-service
@@ -54,6 +56,8 @@ services:
     depends_on:
       - rabbitmq
       - rabbitmq-init
+      - image-loader
+      - vector-loader
 
   image-loader:
     container_name: image-loader-service

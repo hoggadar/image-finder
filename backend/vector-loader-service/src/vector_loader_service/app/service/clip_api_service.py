@@ -14,9 +14,20 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
     """HTTP client for CLIP service."""
 
     def __init__(
-        self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 60.0
+        self, 
+        base_url: str, 
+        endpoints: Dict[str, str], 
+        *, 
+        timeout: float = 30.0,
+        max_retries: int = 3,
+        retry_delay: float = 2.0,
     ) -> None:
-        super().__init__(base_url=base_url, timeout=timeout)
+        super().__init__(
+            base_url=base_url, 
+            timeout=timeout, 
+            max_retries=max_retries, 
+            retry_delay=retry_delay
+        )
         self._endpoints = endpoints
 
     async def get_image_embedding(
