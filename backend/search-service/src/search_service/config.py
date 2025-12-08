@@ -46,7 +46,7 @@ class ServiceConfig(BaseModel):
 
 class ServicesUrlsConfig(BaseModel):
     """URLs for external services (can be overridden via .env)."""
-    clip_service_url: str = "http://clip-service:8080"
+    clip_service_url: str = "http://localhost:6666"
 
 
 class Config(BaseSettings):

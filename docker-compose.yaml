@@ -115,7 +115,7 @@ services:
       CONFIG__APP__PORT: 8080
       CONFIG__QDRANT__HOST: qdrant
       CONFIG__QDRANT__PORT: 6333
-      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://clip-service:8080
+      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://localhost:6666
     depends_on:
       - qdrant
 
