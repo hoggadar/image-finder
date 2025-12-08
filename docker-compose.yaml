@@ -10,7 +10,6 @@ services:
       - image-finder-network
     depends_on:
       - auth
-      - clip
       - upload
       - search
   
@@ -101,7 +100,6 @@ services:
       - rabbitmq
       - rabbitmq-init
       - qdrant
-      - clip
 
   search:
     container_name: search-service
@@ -120,7 +118,6 @@ services:
       CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://clip-service:8080
     depends_on:
       - qdrant
-      - clip
 
   postgres:
     image: postgres:16

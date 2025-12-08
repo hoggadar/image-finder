@@ -24,6 +24,7 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to load CLIP model: {e}", exc_info=True)
         raise
     yield
+    logger.info("Application shutdown")
 
 
 def create_app() -> FastAPI:
