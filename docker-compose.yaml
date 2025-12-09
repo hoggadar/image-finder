@@ -13,19 +13,20 @@ services:
       - upload
       - search
   
-  # clip service runs locally, not in container
-  # clip:
-  #   container_name: clip-service
-  #   build:
-  #     context: backend/clip-service/
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "7070:8080"
-  #   networks:
-  #     - image-finder-network
-  #   environment:
-  #     CONFIG__APP__HOST: "0.0.0.0"
-  #     CONFIG__APP__PORT: 8080
+  clip:
+    container_name: clip-service
+    build:
+      context: backend/clip-service/
+      dockerfile: Dockerfile
+    ports:
+      - "7070:8080"
+    networks:
+      - image-finder-network
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    environment:
+      CONFIG__APP__HOST: "0.0.0.0"
+      CONFIG__APP__PORT: 8080
 
   auth:
     container_name: auth-service
@@ -88,8 +89,6 @@ services:
       dockerfile: Dockerfile
     networks:
       - image-finder-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       CONFIG__RABBITMQ__HOST: message-broker-rabbitmq
       CONFIG__RABBITMQ__PORT: 5672
@@ -97,12 +96,13 @@ services:
       CONFIG__RABBITMQ__PASSWORD: guest
       CONFIG__QDRANT__HOST: qdrant
       CONFIG__QDRANT__PORT: 6333
-      CONFIG__CLIP_SERVICE__HOST: host.docker.internal
-      CONFIG__CLIP_SERVICE__PORT: 6666
+      CONFIG__CLIP_SERVICE__HOST: clip-service
+      CONFIG__CLIP_SERVICE__PORT: 8080
     depends_on:
       - rabbitmq
       - rabbitmq-init
       - qdrant
+      - clip
 
   search:
     container_name: search-service
@@ -113,16 +113,15 @@ services:
       - "4040:8080"
     networks:
       - image-finder-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       CONFIG__APP__HOST: "0.0.0.0"
       CONFIG__APP__PORT: 8080
       CONFIG__QDRANT__HOST: qdrant
       CONFIG__QDRANT__PORT: 6333
-      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://host.docker.internal:6666
+      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://clip-service:8080
     depends_on:
       - qdrant
+      - clip
 
   postgres:
     image: postgres:16
@@ -211,3 +210,4 @@ volumes:
   rabbitmq-data:
   minio-data:
   qdrant-data:
+  huggingface-cache:
