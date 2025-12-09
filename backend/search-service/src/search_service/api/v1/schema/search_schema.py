@@ -9,6 +9,7 @@ class SearchResultItemSchema(BaseModel):
     """Single search result item."""
     object_name: str = Field(..., description="S3 object name for the image")
     image_filename: str = Field(..., description="Original filename of the image")
+    image_url: str = Field(..., description="URL to retrieve the image")
     user_id: str = Field(..., description="ID of the user who uploaded the image")
     score: float = Field(..., description="Similarity score (higher is better)")
     point_id: str = Field(..., description="Qdrant point ID")

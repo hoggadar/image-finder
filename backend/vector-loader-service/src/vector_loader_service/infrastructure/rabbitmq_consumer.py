@@ -115,15 +115,18 @@ class RabbitMQConsumer:
                     extra={"dimension": len(image_embedding)}
                 )
                 
-                # Generate unique object name
-                file_extension = image_filename.split(".")[-1] if "." in image_filename else "jpg"
-                if "." in image_filename:
-                    file_name_without_ext = ".".join(image_filename.split(".")[:-1])
-                else:
-                    file_name_without_ext = image_filename
-                
-                unique_id = uuid4()
-                object_name = f"{user_id}/{file_name_without_ext}_{unique_id}.{file_extension}"
+                # Use object_name from message if provided, otherwise generate new one
+                object_name = body.get("object_name")
+                if not object_name:
+                    # Fallback: generate object name if not provided in message
+                    file_extension = image_filename.split(".")[-1] if "." in image_filename else "jpg"
+                    if "." in image_filename:
+                        file_name_without_ext = ".".join(image_filename.split(".")[:-1])
+                    else:
+                        file_name_without_ext = image_filename
+                    
+                    unique_id = uuid4()
+                    object_name = f"{user_id}/{file_name_without_ext}_{unique_id}.{file_extension}"
                 
                 logger.info(
                     "Storing vector in Qdrant",

@@ -70,15 +70,18 @@ class QdrantSearchService(VectorSearchService):
                     ]
                 )
 
-            # Perform search
-            search_result = self.client.search(
+            # Perform search using query_points (correct API for qdrant-client >= 1.7)
+            # Note: query parameter accepts vector directly (List[float]) or NamedVector
+            # query_filter is passed separately
+            search_result = self.client.query_points(
                 collection_name=self.collection_name,
-                query_vector=vector,
-                query_filter=query_filter,
+                query=vector,  # Pass vector directly
+                query_filter=query_filter,  # Filter passed separately
                 limit=limit,
             )
 
             # Convert results to DTOs
+            # query_points returns QueryResponse with points attribute
             results = [
                 SearchResultItemDTO(
                     object_name=hit.payload.get("object_name", ""),
@@ -87,7 +90,7 @@ class QdrantSearchService(VectorSearchService):
                     score=hit.score,
                     point_id=str(hit.id),
                 )
-                for hit in search_result
+                for hit in search_result.points
             ]
 
             logger.info(

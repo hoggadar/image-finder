@@ -46,7 +46,17 @@ class ServiceConfig(BaseModel):
 
 class ServicesUrlsConfig(BaseModel):
     """URLs for external services (can be overridden via .env)."""
-    clip_service_url: str = "http://localhost:6666"
+    clip_service_url: str = "http://clip-service:8080"
+
+
+class MinIOConfig(BaseModel):
+    """MinIO object storage configuration."""
+    endpoint: str = "minio-s3:9000"
+    access_key: str = "minioadmin"
+    secret_key: str = "minioadmin"
+    secure: bool = False
+    bucket_name: str = "images"
+    region: str = "us-east-1"
 
 
 class Config(BaseSettings):
@@ -64,6 +74,7 @@ class Config(BaseSettings):
     api: ApiConfig = ApiConfig()
     qdrant: QdrantConfig = QdrantConfig()
     service_urls: ServicesUrlsConfig = ServicesUrlsConfig()
+    minio: MinIOConfig = MinIOConfig()
 
     @property
     def services(self) -> List[ServiceConfig]:
