@@ -1,5 +1,3 @@
-"""Dependencies for services."""
-
 from functools import lru_cache
 
 from search_service.app.service.clip_api_service import ClipApiServiceImpl
@@ -11,7 +9,6 @@ from search_service.infrastructure.qdrant_search_service import qdrant_search_se
 
 @lru_cache
 def get_clip_api_service() -> ClipApiServiceImpl:
-    """Get CLIP API service instance."""
     clip_service = next(
         (s for s in config.services if s.name == "clip-service"), None
     )
@@ -31,7 +28,6 @@ def get_clip_api_service() -> ClipApiServiceImpl:
 
 @lru_cache
 def get_search_service() -> SearchService:
-    """Get search service instance."""
     return SearchServiceImpl(
         clip_service=get_clip_api_service(),
         vector_search_service=qdrant_search_service,

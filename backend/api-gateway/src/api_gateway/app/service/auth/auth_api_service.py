@@ -13,8 +13,6 @@ from api_gateway.app.service.base_api_service import BaseApiServiceImpl
 
 
 class AuthApiServiceImpl(BaseApiServiceImpl, AuthApiService):
-    """HTTP client responsible for delegating auth requests to the auth microservice."""
-
     def __init__(self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 10.0) -> None:
         super().__init__(base_url=base_url, timeout=timeout)
         self._endpoints = endpoints

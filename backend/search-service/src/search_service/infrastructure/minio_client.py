@@ -1,5 +1,3 @@
-"""MinIO client for retrieving images."""
-
 import logging
 
 from minio import Minio
@@ -11,8 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class MinIOClient:
-    """Client for retrieving images from MinIO object storage."""
-
     def __init__(self):
         logger.info(
             "Initializing MinIO client",
@@ -31,18 +27,6 @@ class MinIOClient:
         self.bucket_name = config.minio.bucket_name
 
     def get_image(self, object_name: str) -> tuple[bytes, str]:
-        """
-        Retrieve image from MinIO by object name.
-        
-        Args:
-            object_name: S3 object name (e.g., "user_id/filename_uuid.jpg")
-            
-        Returns:
-            Tuple of (image_bytes, content_type)
-            
-        Raises:
-            S3Error: If object not found or other S3 error
-        """
         try:
             logger.info(
                 "Retrieving image from MinIO",
@@ -52,7 +36,6 @@ class MinIOClient:
                 }
             )
             
-            # List objects in the user directory to help debug
             if "/" in object_name:
                 user_dir = object_name.split("/")[0]
                 try:
@@ -67,22 +50,20 @@ class MinIOClient:
                         extra={
                             "user_dir": user_dir,
                             "object_count": len(objects),
-                            "object_names": object_names,  # All objects
+                            "object_names": object_names,
                             "requested_object": object_name,
                             "object_exists": object_name in object_names,
                         }
                     )
                     
-                    # If object not found, log similar objects for debugging
                     if object_name not in object_names:
-                        # Try to find similar objects (same filename prefix)
                         filename_part = object_name.split("/")[-1].split("_")[0] if "_" in object_name.split("/")[-1] else ""
                         similar_objects = [obj for obj in object_names if filename_part in obj] if filename_part else []
                         logger.warning(
                             "Requested object not found, but similar objects exist",
                             extra={
                                 "requested": object_name,
-                                "similar_objects": similar_objects[:5],  # First 5 similar
+                                "similar_objects": similar_objects[:5],
                             }
                         )
                 except Exception as e:
@@ -93,13 +74,11 @@ class MinIOClient:
                 object_name=object_name,
             )
             
-            # Read image data
             image_data = response.read()
             response.close()
             response.release_conn()
             
-            # Determine content type from file extension
-            content_type = "image/jpeg"  # default
+            content_type = "image/jpeg"
             if "." in object_name:
                 ext = object_name.split(".")[-1].lower()
                 content_type_map = {
@@ -122,6 +101,5 @@ class MinIOClient:
             raise
 
 
-# Global instance
 minio_client = MinIOClient()
 

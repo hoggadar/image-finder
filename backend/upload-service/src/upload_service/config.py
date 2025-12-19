@@ -38,8 +38,6 @@ class QueueConfig(BaseModel):
 
 
 class Config(BaseSettings):
-    """Main configuration for Upload Service."""
-    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_nested_delimiter="__",

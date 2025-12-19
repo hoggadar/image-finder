@@ -5,8 +5,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class RabbitMQConfig(BaseModel):
-    """RabbitMQ connection configuration."""
-    
     host: str = "localhost"
     port: int = 5672
     user: str = "guest"
@@ -19,16 +17,12 @@ class RabbitMQConfig(BaseModel):
 
 
 class QueueConfig(BaseModel):
-    """RabbitMQ queue configuration."""
-    
     vector_queue: str = "vector_upload_queue"
     exchange: str = "image_exchange"
     vector_routing_key: str = "vector.upload"
 
 
 class QdrantConfig(BaseModel):
-    """Qdrant vector database configuration."""
-    
     host: str = "localhost"
     port: int = 6333
     collection_name: str = "image_vectors"
@@ -36,30 +30,22 @@ class QdrantConfig(BaseModel):
 
 
 class EndpointConfig(BaseModel):
-    """Single endpoint configuration."""
-    
     name: str
     service_path: str
     summary: Optional[str] = None
 
 
 class ServiceConfig(BaseModel):
-    """External service configuration."""
-    
     name: str
     base_url: str
     endpoints: List[EndpointConfig]
 
 
 class ServicesUrlsConfig(BaseModel):
-    """URLs for external services (can be overridden via .env)."""
-    
     clip_service_url: str = "http://clip-service:8080"
 
 
 class Config(BaseSettings):
-    """Main configuration for Vector Loader Service."""
-    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_nested_delimiter="__",
@@ -75,7 +61,6 @@ class Config(BaseSettings):
 
     @property
     def services(self) -> List[ServiceConfig]:
-        """Generate service configurations dynamically."""
         return [
             ServiceConfig(
                 name="clip-service",
@@ -101,7 +86,6 @@ class Config(BaseSettings):
         ]
 
     def get_clip_endpoints(self) -> Dict[str, str]:
-        """Get CLIP service endpoints as a dictionary."""
         clip_service = next(
             (s for s in self.services if s.name == "clip-service"), None
         )

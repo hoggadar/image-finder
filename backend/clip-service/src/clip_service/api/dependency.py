@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class ClipModelLoader:
-    """Background loader for CLIP model to avoid blocking API startup."""
-    
     def __init__(self):
         self._model: CLIPModel | None = None
         self._processor: CLIPProcessor | None = None
@@ -25,7 +23,6 @@ class ClipModelLoader:
         self._lock = threading.Lock()
     
     def start_loading(self):
-        """Start loading the model in a background thread."""
         with self._lock:
             if self._loading or self._loaded:
                 return
@@ -35,7 +32,6 @@ class ClipModelLoader:
         thread.start()
     
     def _load_model(self):
-        """Load the model (runs in background thread)."""
         try:
             logger.info(f"Starting to load CLIP model: {config.clip_model.model_name}")
             self._model = CLIPModel.from_pretrained(config.clip_model.model_name)
@@ -69,7 +65,6 @@ class ClipModelLoader:
         return self._loading
     
     def get_service(self) -> ClipService:
-        """Get the CLIP service, raising 503 if not ready."""
         if self._error:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -83,22 +78,18 @@ class ClipModelLoader:
         return self._service
 
 
-# Global loader instance
 _loader = ClipModelLoader()
 
 
 def start_model_loading():
-    """Start loading the model in background. Call this at app startup."""
     _loader.start_loading()
 
 
 def is_model_ready() -> bool:
-    """Check if the model is ready."""
     return _loader.is_ready
 
 
 def get_clip_service() -> ClipService:
-    """Dependency that returns the CLIP service or 503 if not ready."""
     return _loader.get_service()
 
 

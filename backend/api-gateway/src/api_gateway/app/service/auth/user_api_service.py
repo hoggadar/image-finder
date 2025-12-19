@@ -16,8 +16,6 @@ from ..base_api_service import BaseApiServiceImpl
 
 
 class UserApiServiceImpl(BaseApiServiceImpl, UserApiService):
-    """HTTP client responsible for delegating user-related requests to the auth microservice."""
-
     def __init__(self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 10.0) -> None:
         super().__init__(base_url=base_url, timeout=timeout)
         self._endpoints = endpoints

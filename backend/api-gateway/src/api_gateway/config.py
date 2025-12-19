@@ -33,7 +33,6 @@ class ServiceConfig(BaseModel):
 
 
 class ServicesUrlsConfig(BaseModel):
-    """Configuration for external service URLs (can be overridden via .env)."""
     auth_service_url: str = "http://auth-service:8080"
     clip_service_url: str = "http://clip-service:8080"
     upload_service_url: str = "http://upload-service:8080"
@@ -54,7 +53,6 @@ class Config(BaseSettings):
 
     @property
     def services(self) -> List[ServiceConfig]:
-        """Generate service configurations dynamically based on service URLs from .env."""
         return [
             ServiceConfig(
                 name="clip-service",

@@ -1,5 +1,3 @@
-"""Main application entry point."""
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan events."""
     logger.info("Search Service starting up...")
     yield
     logger.info("Search Service shutting down...")

@@ -13,14 +13,7 @@ def create_app() -> FastAPI:
     setup_logger()
     app = FastAPI(
         title="Image Finder API Gateway",
-        description=(
-            "API Gateway for Image Finder microservices architecture.\n\n"
-            "This gateway provides a unified interface to interact with multiple microservices:\n"
-            "- **CLIP Service**: Image-text similarity and embeddings\n"
-            "- **Auth Service**: Authentication and user management\n"
-            "- **Upload Service**: Image storage and processing\n"
-            "- **Search Service**: Vector similarity search (planned)\n"
-        ),
+        description="API Gateway for Image Finder microservices architecture.",
         version="1.0.0",
         openapi_tags=get_tags_metadata(),
     )

@@ -98,7 +98,6 @@ async def get_image_embedding(
     clip_service: ClipServiceDepends,
     image: UploadFile = File(..., description="Image for embedding generation"),
 ) -> ImageEmbeddingResponse:
-    """Get embedding vector for an image without requiring text input."""
     image_bytes = await image.read()
     image_embedding = await clip_service.get_image_embedding(image_bytes=image_bytes)
     return ImageEmbeddingResponse(
@@ -116,7 +115,6 @@ async def get_text_embedding(
     clip_service: ClipServiceDepends,
     text: str = Form(..., description="Text for embedding generation"),
 ) -> TextEmbeddingResponse:
-    """Get embedding vector for text without requiring image input."""
     text_embedding = await clip_service.get_text_embedding(text=text)
     return TextEmbeddingResponse(
         text_embedding=text_embedding.detach().cpu().tolist()

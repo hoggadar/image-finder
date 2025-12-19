@@ -11,7 +11,6 @@ router_v1.include_router(clip_router, prefix=config.api.v1.clip_prefix)
 
 @router_v1.get("/health")
 async def health_check():
-    """Check service health and model loading status."""
     ready = is_model_ready()
     return {
         "status": "healthy",

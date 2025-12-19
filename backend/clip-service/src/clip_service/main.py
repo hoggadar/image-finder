@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Start loading CLIP model in background (non-blocking)."""
     logger.info("Starting CLIP model loading in background...")
     start_model_loading()
     logger.info("API is ready, model loading in background")

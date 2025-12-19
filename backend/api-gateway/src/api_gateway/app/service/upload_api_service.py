@@ -9,8 +9,6 @@ from api_gateway.core.interface.service.upload import UploadApiService
 
 
 class UploadApiServiceImpl(BaseApiServiceImpl, UploadApiService):
-    """HTTP client responsible for delegating upload requests to the Upload microservice."""
-
     def __init__(
         self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 30.0
     ) -> None:
@@ -18,7 +16,6 @@ class UploadApiServiceImpl(BaseApiServiceImpl, UploadApiService):
         self._endpoints = endpoints
 
     async def upload_image(self, file: UploadFile, user_id: str) -> dict[str, Any]:
-        """Upload an image to the upload service for a specific user."""
         image_data = await file.read()
         files = {"file": (file.filename or "unknown", image_data, file.content_type)}
         data = {"user_id": user_id}

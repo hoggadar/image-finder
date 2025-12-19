@@ -13,7 +13,6 @@ from api_gateway.core.interface.service.auth import AuthApiService
 
 logger = logging.getLogger(__name__)
 
-# HTTPBearer instance для автоматической интеграции со Swagger UI
 http_bearer = HTTPBearer(
     scheme_name="Bearer",
     description="Введите JWT токен",

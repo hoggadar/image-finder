@@ -110,10 +110,6 @@ class UserRepositoryImpl(UserRepository):
                 .returning(UserEntity)
             )
             
-            # Important:
-            # SQLAlchemy Result objects are *consumed after one access* (e.g., scalar_one_or_none(), fetchall(), etc.).
-            # Calling these methods more than once closes the underlying cursor and raises ResourceClosedError.
-            
             result = await self.session.execute(stmt)
             return result.scalar_one_or_none()
         except Exception as e:

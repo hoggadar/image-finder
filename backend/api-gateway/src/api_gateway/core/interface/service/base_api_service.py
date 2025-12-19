@@ -5,8 +5,6 @@ from typing import Any, Mapping, MutableMapping, Optional
 
 
 class BaseApiService(ABC):
-    """Abstraction for HTTP clients that proxy requests to downstream services."""
-
     @abstractmethod
     async def request(
         self,
@@ -20,7 +18,7 @@ class BaseApiService(ABC):
         files: Any = None,
         timeout: Optional[float] = None,
     ) -> Any:
-        """Send an HTTP request to the downstream service and return raw response data."""
+        pass
 
     @abstractmethod
     async def get(
@@ -31,7 +29,7 @@ class BaseApiService(ABC):
         headers: Optional[MutableMapping[str, str]] = None,
         timeout: Optional[float] = None,
     ) -> Any:
-        """Perform GET request against downstream service."""
+        pass
 
     @abstractmethod
     async def post(
@@ -45,7 +43,7 @@ class BaseApiService(ABC):
         files: Any = None,
         timeout: Optional[float] = None,
     ) -> Any:
-        """Perform POST request against downstream service."""
+        pass
 
     @abstractmethod
     async def put(
@@ -59,7 +57,7 @@ class BaseApiService(ABC):
         files: Any = None,
         timeout: Optional[float] = None,
     ) -> Any:
-        """Perform PUT request against downstream service."""
+        pass
 
     @abstractmethod
     async def delete(
@@ -70,6 +68,6 @@ class BaseApiService(ABC):
         headers: Optional[MutableMapping[str, str]] = None,
         timeout: Optional[float] = None,
     ) -> Any:
-        """Perform DELETE request against downstream service."""
+        pass
 
 

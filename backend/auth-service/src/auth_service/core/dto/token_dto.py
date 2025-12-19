@@ -10,9 +10,6 @@ class TokenPayload:
     role_name: str
 
 
-
-# new dtos
-
 @dataclass
 class AccessTokenPayloadDTO:
     user_id: uuid.UUID

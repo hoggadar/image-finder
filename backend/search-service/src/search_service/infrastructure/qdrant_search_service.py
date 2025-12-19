@@ -1,5 +1,3 @@
-"""Qdrant vector search implementation."""
-
 import logging
 from typing import List, Optional
 
@@ -14,8 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class QdrantSearchService(VectorSearchService):
-    """Qdrant implementation of vector search service."""
-
     def __init__(self):
         logger.info(
             "Initializing Qdrant search service",
@@ -146,8 +142,7 @@ class QdrantSearchService(VectorSearchService):
                 filtered_relevant = []
                 for hit in search_result.points:
                     object_name = hit.payload.get("object_name", "").lower()
-                    similarity = hit.score  # Qdrant returns similarity directly
-                    # Check if object name contains query keywords but was filtered
+                    similarity = hit.score
                     query_keywords = [kw for kw in query_lower.split() if len(kw) > 3]
                     if any(keyword in object_name for keyword in query_keywords):
                         if similarity < min_similarity:

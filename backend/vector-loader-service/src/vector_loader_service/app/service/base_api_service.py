@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class BaseApiServiceImpl(BaseApiService):
-    """Concrete base class providing common HTTP helper methods for downstream services."""
-
     def __init__(
         self, 
         base_url: str, 
@@ -65,11 +63,11 @@ class BaseApiServiceImpl(BaseApiService):
                         data=data,
                         files=files,
                     )
-                break  # Success, exit retry loop
+                break
             except (httpx.ConnectError, httpx.TimeoutException) as exc:
                 last_exception = exc
                 if attempt < self.max_retries - 1:
-                    delay = self.retry_delay * (2 ** attempt)  # Exponential backoff
+                    delay = self.retry_delay * (2 ** attempt)
                     logger.warning(
                         f"Connection failed (attempt {attempt + 1}/{self.max_retries}), retrying in {delay}s",
                         extra={"url": url, "error": str(exc)}

@@ -13,38 +13,36 @@ from api_gateway.core.interface.service.base_api_service import BaseApiService
 
 
 class UserApiService(BaseApiService, ABC):
-    """Abstraction describing gateway operations that proxy user management endpoints."""
-
     @abstractmethod
     async def get_all(self, *, offset: int, limit: int, search: str) -> Sequence[UserSchema]:
-        """Retrieve paginated list of users with optional search filter."""
+        pass
 
     @abstractmethod
     async def get_by_id(self, user_id: str) -> UserSchema:
-        """Fetch a single user by identifier."""
+        pass
 
     @abstractmethod
     async def get_by_email(self, email: str) -> UserSchema:
-        """Fetch a single user by email."""
+        pass
 
     @abstractmethod
     async def get_by_username(self, username: str) -> UserSchema:
-        """Fetch a single user by username."""
+        pass
 
     @abstractmethod
     async def create(self, payload: CreateUserSchema) -> UserSchema:
-        """Create a new user record."""
+        pass
 
     @abstractmethod
     async def update(self, payload: UpdateUserSchema) -> UserSchema:
-        """Update an existing user."""
+        pass
 
     @abstractmethod
     async def delete(self, user_id: str) -> UserSchema:
-        """Delete a user by identifier."""
+        pass
 
     @abstractmethod
     async def change_password(self, payload: ChangePasswordSchema) -> None:
-        """Change user password. Implementations may raise if unsupported."""
+        pass
 
 

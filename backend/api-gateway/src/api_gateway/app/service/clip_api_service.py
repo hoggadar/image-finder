@@ -16,8 +16,6 @@ from api_gateway.core.interface.service.clip import ClipApiService
 
 
 class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
-    """HTTP client responsible for delegating CLIP requests to the CLIP microservice."""
-
     def __init__(
         self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 30.0
     ) -> None:
@@ -27,7 +25,6 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
     async def calculate_similarity(
         self, image: UploadFile, text: str
     ) -> ClipSimilarityResponse:
-        """Calculate similarity between an image and a text prompt."""
         image_data = await image.read()
         files = {"image": (image.filename or "image", image_data, image.content_type)}
         data = {"text": text}
@@ -42,7 +39,6 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
     async def get_embeddings(
         self, image: UploadFile, text: str
     ) -> EmbeddingsResponse:
-        """Return embeddings for both image and text inputs."""
         image_data = await image.read()
         files = {"image": (image.filename or "image", image_data, image.content_type)}
         data = {"text": text}
@@ -57,7 +53,6 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
     async def compare_embeddings(
         self, payload: CompareEmbeddingsRequest
     ) -> CompareEmbeddingsResponse:
-        """Compare similarity between provided image and text embeddings."""
         response = await self.post(
             self._endpoints["ComparePrecomputedEmbeddings"],
             json=payload.model_dump(),
@@ -67,7 +62,6 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
     async def compare_text_with_image_vector(
         self, payload: CompareTextWithImageVectorRequest
     ) -> CompareEmbeddingsResponse:
-        """Compare a text prompt against a provided image embedding."""
         response = await self.post(
             self._endpoints["CompareTextWithImageVector"],
             json=payload.model_dump(),

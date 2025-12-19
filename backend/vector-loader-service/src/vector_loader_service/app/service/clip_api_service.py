@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
-    """HTTP client for CLIP service."""
-
     def __init__(
         self, 
         base_url: str, 
@@ -33,16 +31,6 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
     async def get_image_embedding(
         self, image_data: bytes, image_filename: str
     ) -> List[float]:
-        """
-        Get image embedding from CLIP service.
-        
-        Args:
-            image_data: Raw image bytes
-            image_filename: Original filename
-            
-        Returns:
-            List of floats representing the image embedding
-        """
         logger.info(
             "Requesting image embedding from CLIP service",
             extra={
@@ -83,24 +71,11 @@ class ClipApiServiceImpl(BaseApiServiceImpl, ClipApiService):
         return embedding
 
     async def get_text_embedding(self, text: str) -> List[float]:
-        """
-        Get text embedding from CLIP service.
-        
-        Note: CLIP service currently requires both image and text,
-        so this method creates a dummy image.
-        
-        Args:
-            text: Text to embed
-            
-        Returns:
-            List of floats representing the text embedding
-        """
         logger.debug(
             "Requesting text embedding from CLIP service",
             extra={"text_length": len(text)}
         )
 
-        # Create a simple 1x1 white image as placeholder
         import io
         from PIL import Image
         

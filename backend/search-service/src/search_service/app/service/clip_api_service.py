@@ -1,5 +1,3 @@
-"""CLIP API service implementation."""
-
 from __future__ import annotations
 
 import logging
@@ -12,8 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class ClipApiServiceImpl(BaseApiService, ClipApiService):
-    """HTTP client for CLIP service."""
-
     def __init__(
         self, 
         base_url: str, 
@@ -32,15 +28,6 @@ class ClipApiServiceImpl(BaseApiService, ClipApiService):
         self._endpoints = endpoints
 
     async def get_text_embedding(self, text: str) -> List[float]:
-        """
-        Get text embedding from CLIP service.
-        
-        Args:
-            text: Text to embed
-            
-        Returns:
-            List of floats representing the text embedding
-        """
         logger.info(
             "Requesting text embedding from CLIP service",
             extra={"text_length": len(text)}

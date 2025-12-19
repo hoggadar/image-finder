@@ -67,7 +67,6 @@ class RabbitMQConsumer:
                 
                 image_data = bytes.fromhex(image_data_hex)
                 
-                # Use object_name from message if provided, otherwise generate new one
                 object_name = body.get("object_name")
                 
                 object_name = minio_client.upload_image(

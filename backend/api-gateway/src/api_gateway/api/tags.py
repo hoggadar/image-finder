@@ -1,28 +1,16 @@
-"""API documentation tags for OpenAPI/Swagger UI."""
-
 from typing import List, Dict, Any
 
 
 class ApiTags:
-    """Constants for API tags used in OpenAPI documentation."""
-    
-    # Main service tags
     CLIP = "CLIP"
     UPLOAD = "Upload"
     SEARCH = "Search"
-    
-    # Auth service tags (with hierarchy)
     AUTH_AUTHENTICATION = "Auth - Authentication"
     AUTH_USERS = "Auth - Users"
     AUTH_ROLES = "Auth - Roles"
 
 
 def get_tags_metadata() -> List[Dict[str, Any]]:
-    """Get metadata for API documentation tags.
-    
-    Returns:
-        List of tag metadata dictionaries for FastAPI openapi_tags parameter.
-    """
     return [
         {
             "name": ApiTags.CLIP,

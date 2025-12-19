@@ -5,8 +5,6 @@ from clip_service.core.exception import BaseAppException
 
 
 class ClipServiceException(BaseAppException):
-    """Base exception for Clip Service application errors."""
-
     def __init__(
         self, message: str = "Clip service error", *,
         status_code: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR, details: Optional[dict] = None,

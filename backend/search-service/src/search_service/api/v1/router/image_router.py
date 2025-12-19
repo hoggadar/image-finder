@@ -1,5 +1,3 @@
-"""Image retrieval API router."""
-
 import logging
 from urllib.parse import unquote
 
@@ -32,16 +30,6 @@ image_router = APIRouter()
     },
 )
 async def get_image(object_name: str) -> Response:
-    """
-    Retrieve an image from MinIO storage by object name.
-    
-    The object_name should be in the format: {user_id}/{filename}_{uuid}.{ext}
-    as returned in search results.
-    
-    Example: 8ab8fa2d-0b29-45ab-b215-5eccb11abfb6/котик_904e10b1-1287-4f0c-b106-f2944a079bd4.jpg
-    """
-    # FastAPI should decode URL automatically, but let's ensure it's decoded
-    # Handle double encoding or any encoding issues
     decoded_object_name = unquote(object_name)
     
     logger.info(
@@ -71,8 +59,6 @@ async def get_image(object_name: str) -> Response:
             }
         )
         if e.code == "NoSuchKey":
-            # Provide helpful error message for missing images
-            # This can happen if the image was uploaded before the UUID fix
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=(

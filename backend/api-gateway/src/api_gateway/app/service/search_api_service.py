@@ -7,8 +7,6 @@ from api_gateway.core.interface.service.search import SearchApiService
 
 
 class SearchApiServiceImpl(BaseApiServiceImpl, SearchApiService):
-    """HTTP client responsible for delegating search requests to the Search microservice."""
-
     def __init__(
         self, base_url: str, endpoints: Dict[str, str], *, timeout: float = 30.0
     ) -> None:
@@ -18,7 +16,6 @@ class SearchApiServiceImpl(BaseApiServiceImpl, SearchApiService):
     async def search_images(
         self, query: str, limit: int = 20, user_id: str | None = None
     ) -> Dict[str, Any]:
-        """Search for images by text description."""
         payload = {
             "query": query,
             "limit": limit,
@@ -27,7 +24,7 @@ class SearchApiServiceImpl(BaseApiServiceImpl, SearchApiService):
             payload["user_id"] = user_id
             
         response = await self.post(
-            "/api/v1/search/",  # Note: trailing slash required by FastAPI
+            "/api/v1/search/",
             json=payload,
         )
         return response

@@ -83,7 +83,6 @@ class Config(BaseSettings):
         ]
 
     def get_clip_endpoints(self) -> Dict[str, str]:
-        """Get CLIP service endpoints as a dictionary."""
         clip_service = next(
             (s for s in self.services if s.name == "clip-service"), None
         )

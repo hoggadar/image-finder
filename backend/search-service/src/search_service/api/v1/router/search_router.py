@@ -1,5 +1,3 @@
-"""Search API router."""
-
 from typing import Annotated
 from urllib.parse import quote
 
@@ -28,21 +26,12 @@ async def search_images(
     request: Request,
     search_service: Annotated[SearchService, Depends(get_search_service)],
 ) -> SearchResponseSchema:
-    """
-    Search for images by text description using CLIP embeddings.
-    
-    The service will:
-    1. Convert the text query to a vector embedding using CLIP
-    2. Search for similar image embeddings in Qdrant vector database
-    3. Return matching images sorted by similarity score with URLs to retrieve them
-    """
     result = await search_service.search_images(
         query=payload.query,
         limit=payload.limit,
         user_id=payload.user_id,
     )
     
-    # Generate base URL for image retrieval
     base_url = str(request.base_url).rstrip("/")
     image_base_path = f"{base_url}{config.api.prefix}{config.api.v1.prefix}/images"
     

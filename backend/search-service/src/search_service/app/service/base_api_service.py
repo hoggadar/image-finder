@@ -1,5 +1,3 @@
-"""Base HTTP client for API services."""
-
 from __future__ import annotations
 
 import asyncio
@@ -12,8 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class BaseApiService:
-    """Base HTTP client providing common methods for downstream services."""
-
     def __init__(
         self, 
         base_url: str, 
@@ -60,7 +56,7 @@ class BaseApiService:
                         data=data,
                         files=files,
                     )
-                break  # Success
+                break
             except (httpx.ConnectError, httpx.TimeoutException) as exc:
                 last_exception = exc
                 if attempt < self.max_retries - 1:

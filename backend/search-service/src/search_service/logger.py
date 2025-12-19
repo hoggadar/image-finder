@@ -21,10 +21,8 @@ def setup_logger(level: int = logging.DEBUG) -> None:
             record.asctime = datetime.fromtimestamp(record.created, tz=timezone.utc).strftime(
                 "%Y-%m-%d %H:%M:%S,%f")[:-3] + " UTC"
             
-            # Format extra fields if present
             message = super().format(record)
             if hasattr(record, 'extra') and record.extra:
-                # Format extra fields as JSON-like string
                 extra_parts = []
                 for key, value in record.extra.items():
                     if isinstance(value, (list, dict)):

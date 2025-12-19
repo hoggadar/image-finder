@@ -31,22 +31,9 @@ class MinIOClient:
             raise
 
     def upload_image(self, image_data: bytes, filename: str, user_id: str, object_name: str | None = None) -> str:
-        """
-        Upload image to MinIO.
-        
-        Args:
-            image_data: Image bytes
-            filename: Original filename (for content type detection)
-            user_id: User ID
-            object_name: Pre-generated object name (if provided, will be used instead of generating new one)
-            
-        Returns:
-            object_name used for storage
-        """
         if not user_id:
             raise ValueError("user_id is required")
         
-        # Use provided object_name or generate new one
         if not object_name:
             if "." in filename:
                 file_name_without_ext = ".".join(filename.split(".")[:-1])
@@ -58,7 +45,6 @@ class MinIOClient:
             unique_id = uuid4()
             object_name = f"{user_id}/{file_name_without_ext}_{unique_id}.{file_extension}"
         
-        # Determine file extension for content type
         file_extension = object_name.split(".")[-1] if "." in object_name else "jpg"
         
         try:

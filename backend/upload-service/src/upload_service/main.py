@@ -19,15 +19,9 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    """Create and configure FastAPI application."""
     app = FastAPI(
         title="Upload Service",
-        description=(
-            "Service for uploading images to user gallery.\n\n"
-            "Images are validated and sent to RabbitMQ message queue for processing by:\n"
-            "- **Image Loader Service**: Stores images in MinIO S3\n"
-            "- **Vector Loader Service**: Generates CLIP embeddings for similarity search\n"
-        ),
+        description="Service for uploading images to user gallery.",
         version="1.0.0",
         lifespan=lifespan,
         openapi_tags=get_tags_metadata(),

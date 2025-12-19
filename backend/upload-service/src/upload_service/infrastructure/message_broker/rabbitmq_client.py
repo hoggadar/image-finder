@@ -12,15 +12,12 @@ logger = logging.getLogger(__name__)
 
 
 class RabbitMQClient:
-    """RabbitMQ client for publishing image upload messages."""
-    
     def __init__(self):
         self.connection: Optional[aio_pika.Connection] = None
         self.channel: Optional[aio_pika.Channel] = None
         self.exchange: Optional[aio_pika.Exchange] = None
 
     async def connect(self) -> None:
-        """Establish connection to RabbitMQ and declare exchange."""
         try:
             logger.info(
                 "Connecting to RabbitMQ",
@@ -59,7 +56,6 @@ class RabbitMQClient:
             raise
 
     async def disconnect(self) -> None:
-        """Close RabbitMQ connection."""
         if self.connection and not self.connection.is_closed:
             logger.info("Disconnecting from RabbitMQ")
             await self.connection.close()
@@ -71,21 +67,9 @@ class RabbitMQClient:
         filename: str,
         user_id: Optional[str] = None
     ) -> None:
-        """
-        Publish image to message queue for processing.
-        
-        Args:
-            image_data: Raw image bytes
-            filename: Original filename
-            user_id: ID of user who uploaded the image
-            
-        Raises:
-            RuntimeError: If RabbitMQ connection is not established
-        """
         if not self.channel or not self.exchange:
             raise RuntimeError("RabbitMQ connection not established")
 
-        # Generate unique ID once to ensure image-loader and vector-loader use the same object_name
         from uuid import uuid4
         
         file_extension = filename.split(".")[-1] if "." in filename else "jpg"
@@ -101,7 +85,7 @@ class RabbitMQClient:
             "filename": filename,
             "image_data": image_data.hex(),
             "user_id": user_id,
-            "object_name": object_name,  # Pre-generated object_name for consistency
+            "object_name": object_name,
         }
 
         message = Message(
@@ -110,7 +94,6 @@ class RabbitMQClient:
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
         )
 
-        # Publish to image queue (for storage in MinIO)
         await self.exchange.publish(
             message,
             routing_key=config.queue.image_routing_key,
@@ -124,7 +107,6 @@ class RabbitMQClient:
             }
         )
         
-        # Publish to vector queue (for CLIP embeddings generation)
         await self.exchange.publish(
             message,
             routing_key=config.queue.vector_routing_key,
@@ -139,6 +121,5 @@ class RabbitMQClient:
         )
 
 
-# Global singleton instance
 rabbitmq_client = RabbitMQClient()
 

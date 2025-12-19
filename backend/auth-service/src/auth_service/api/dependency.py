@@ -18,8 +18,6 @@ from auth_service.app.service.token_service import TokenServiceImpl
 from auth_service.app.service.auth_service import AuthServiceImpl
 
 
-# Repositories
-
 def get_role_repo(session: AsyncSession = Depends(database.get_session)):
     return RoleRepositoryImpl(session=session)
 
@@ -29,7 +27,6 @@ def get_user_repo(session: AsyncSession = Depends(database.get_session)):
 def get_token_repo(session: AsyncSession = Depends(database.get_session)):
     return TokenRepositoryImpl(session=session)
 
-# Services
 
 def get_role_service(
     role_repo: RoleRepository = Depends(get_role_repo),

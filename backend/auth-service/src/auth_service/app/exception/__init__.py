@@ -1,4 +1,3 @@
-# User exceptions
 from .user_exception import (
     UserCreationException,
     UserNotFoundException,
@@ -8,7 +7,6 @@ from .user_exception import (
     UserDeletionException,
 )
 
-# Auth exceptions
 from .auth_exception import (
     AuthenticationException,
     AuthorizationException,
@@ -18,7 +16,6 @@ from .auth_exception import (
     AccountLockedException,
 )
 
-# Role exceptions
 from .role_exception import (
     RoleNotFoundException,
     RoleCreationException,
@@ -29,7 +26,6 @@ from .role_exception import (
     InvalidRoleAssignmentException,
 )
 
-# Token exceptions
 from .token_exception import (
     TokenNotFoundException,
     TokenExpiredException,
@@ -44,23 +40,18 @@ from .token_exception import (
 )
 
 __all__ = [
-    # User exceptions
     "UserCreationException",
     "UserNotFoundException", 
     "UserAlreadyExistsException",
     "PasswordChangeException",
     "UserUpdateException",
     "UserDeletionException",
-    
-    # Auth exceptions
     "AuthenticationException",
     "AuthorizationException",
     "LoginException",
     "LogoutException",
     "InvalidCredentialsException",
     "AccountLockedException",
-    
-    # Role exceptions
     "RoleNotFoundException",
     "RoleCreationException",
     "RoleUpdateException",
@@ -68,8 +59,6 @@ __all__ = [
     "RoleAlreadyExistsException",
     "InsufficientPermissionsException",
     "InvalidRoleAssignmentException",
-    
-    # Token exceptions
     "TokenNotFoundException",
     "TokenExpiredException",
     "TokenAlreadyExistsException",
