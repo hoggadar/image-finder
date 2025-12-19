@@ -9,6 +9,7 @@ from clip_service.api.v1.schema import (
     CompareTextWithImageVectorRequest,
     EmbeddingsResponse,
     ImageEmbeddingResponse,
+    TextEmbeddingResponse,
 )
 
 
@@ -102,4 +103,21 @@ async def get_image_embedding(
     image_embedding = await clip_service.get_image_embedding(image_bytes=image_bytes)
     return ImageEmbeddingResponse(
         image_embedding=image_embedding.detach().cpu().tolist()
+    )
+
+
+@clip_router.post(
+    "/text-embedding",
+    status_code=status.HTTP_200_OK,
+    summary="Get embedding for text only",
+    response_model=TextEmbeddingResponse,
+)
+async def get_text_embedding(
+    clip_service: ClipServiceDepends,
+    text: str = Form(..., description="Text for embedding generation"),
+) -> TextEmbeddingResponse:
+    """Get embedding vector for text without requiring image input."""
+    text_embedding = await clip_service.get_text_embedding(text=text)
+    return TextEmbeddingResponse(
+        text_embedding=text_embedding.detach().cpu().tolist()
     )

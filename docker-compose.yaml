@@ -8,6 +8,10 @@ services:
       - "8080:8080"
     networks:
       - image-finder-network
+    depends_on:
+      - auth
+      - upload
+      - search
   
   clip:
     container_name: clip-service
@@ -18,9 +22,12 @@ services:
       - "7070:8080"
     networks:
       - image-finder-network
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
     environment:
       CONFIG__APP__HOST: "0.0.0.0"
       CONFIG__APP__PORT: 8080
+      HF_HUB_DISABLE_XET: "1"
 
   auth:
     container_name: auth-service
@@ -31,6 +38,8 @@ services:
       - "6060:8080"
     networks:
       - image-finder-network
+    depends_on:
+      - postgres
   
   upload:
     container_name: upload-service
@@ -49,6 +58,8 @@ services:
     depends_on:
       - rabbitmq
       - rabbitmq-init
+      - image-loader
+      - vector-loader
 
   image-loader:
     container_name: image-loader-service
@@ -86,13 +97,37 @@ services:
       CONFIG__RABBITMQ__PASSWORD: guest
       CONFIG__QDRANT__HOST: qdrant
       CONFIG__QDRANT__PORT: 6333
-      CONFIG__CLIP_SERVICE__HOST: clip
-      CONFIG__CLIP_SERVICE__PORT: 8080
+      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://clip-service:8080
     depends_on:
       - rabbitmq
       - rabbitmq-init
       - qdrant
       - clip
+
+  search:
+    container_name: search-service
+    build:
+      context: backend/search-service/
+      dockerfile: Dockerfile
+    ports:
+      - "4040:8080"
+    networks:
+      - image-finder-network
+    environment:
+      CONFIG__APP__HOST: "0.0.0.0"
+      CONFIG__APP__PORT: 8080
+      CONFIG__QDRANT__HOST: qdrant
+      CONFIG__QDRANT__PORT: 6333
+      CONFIG__SERVICE_URLS__CLIP_SERVICE_URL: http://clip-service:8080
+      CONFIG__MINIO__ENDPOINT: minio-s3:9000
+      CONFIG__MINIO__ACCESS_KEY: minioadmin
+      CONFIG__MINIO__SECRET_KEY: minioadmin
+      CONFIG__MINIO__SECURE: "false"
+      CONFIG__MINIO__BUCKET_NAME: images
+    depends_on:
+      - qdrant
+      - clip
+      - minio
 
   postgres:
     image: postgres:16
@@ -181,3 +216,4 @@ volumes:
   rabbitmq-data:
   minio-data:
   qdrant-data:
+  huggingface-cache:

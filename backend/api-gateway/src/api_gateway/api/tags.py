@@ -80,10 +80,9 @@ def get_tags_metadata() -> List[Dict[str, Any]]:
             "description": (
                 "**Image Search Operations**\n\n"
                 "Vector similarity search operations:\n"
-                "- Search images by text description\n"
-                "- Search images by embedding vector\n"
-                "- Search similar images by image\n\n"
-                "*Note: This service is planned for future implementation*"
+                "- Search images by text description using CLIP embeddings\n"
+                "- Filter results by user or search globally\n"
+                "- Get similarity scores for each result"
             ),
         },
     ]

@@ -85,10 +85,23 @@ class RabbitMQClient:
         if not self.channel or not self.exchange:
             raise RuntimeError("RabbitMQ connection not established")
 
+        # Generate unique ID once to ensure image-loader and vector-loader use the same object_name
+        from uuid import uuid4
+        
+        file_extension = filename.split(".")[-1] if "." in filename else "jpg"
+        if "." in filename:
+            file_name_without_ext = ".".join(filename.split(".")[:-1])
+        else:
+            file_name_without_ext = filename
+        
+        unique_id = uuid4()
+        object_name = f"{user_id}/{file_name_without_ext}_{unique_id}.{file_extension}"
+
         message_body = {
             "filename": filename,
             "image_data": image_data.hex(),
             "user_id": user_id,
+            "object_name": object_name,  # Pre-generated object_name for consistency
         }
 
         message = Message(
