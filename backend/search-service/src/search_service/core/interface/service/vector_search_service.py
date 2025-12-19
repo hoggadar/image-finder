@@ -15,6 +15,7 @@ class VectorSearchService(ABC):
         vector: List[float],
         limit: int = 20,
         user_id: str | None = None,
+        query_text: str | None = None,  # For logging purposes
     ) -> List[SearchResultItemDTO]:
         """
         Search for similar vectors in the database.

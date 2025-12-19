@@ -20,7 +20,22 @@ def setup_logger(level: int = logging.DEBUG) -> None:
             record.levelname = f"{level_color}{record.levelname}{reset}"
             record.asctime = datetime.fromtimestamp(record.created, tz=timezone.utc).strftime(
                 "%Y-%m-%d %H:%M:%S,%f")[:-3] + " UTC"
-            return super().format(record)
+            
+            # Format extra fields if present
+            message = super().format(record)
+            if hasattr(record, 'extra') and record.extra:
+                # Format extra fields as JSON-like string
+                extra_parts = []
+                for key, value in record.extra.items():
+                    if isinstance(value, (list, dict)):
+                        import json
+                        extra_parts.append(f"{key}={json.dumps(value)}")
+                    else:
+                        extra_parts.append(f"{key}={value}")
+                if extra_parts:
+                    message += " | " + " | ".join(extra_parts)
+            
+            return message
 
     formatter = ColorFormatter(fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 

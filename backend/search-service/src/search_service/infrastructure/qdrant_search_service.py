@@ -36,6 +36,7 @@ class QdrantSearchService(VectorSearchService):
         vector: List[float],
         limit: int = 20,
         user_id: Optional[str] = None,
+        query_text: Optional[str] = None,
     ) -> List[SearchResultItemDTO]:
         """
         Search for similar vectors in Qdrant.
@@ -49,16 +50,20 @@ class QdrantSearchService(VectorSearchService):
             List of search result items sorted by similarity
         """
         try:
+            import math
+            vector_norm = math.sqrt(sum(x * x for x in vector))
+            norm_check = "normalized" if abs(vector_norm - 1.0) < 0.01 else "NOT_NORMALIZED"
             logger.info(
-                "Searching vectors in Qdrant",
+                f"Searching vectors in Qdrant: vector_dimension={len(vector)}, vector_norm={vector_norm:.6f}, norm_check={norm_check}, limit={limit}, user_id={user_id}",
                 extra={
                     "limit": limit,
                     "user_id": user_id,
                     "vector_dimension": len(vector),
+                    "vector_norm": vector_norm,
+                    "vector_norm_check": norm_check,
                 }
             )
 
-            # Prepare filter if user_id is provided
             query_filter = None
             if user_id:
                 query_filter = Filter(
@@ -70,36 +75,128 @@ class QdrantSearchService(VectorSearchService):
                     ]
                 )
 
-            # Perform search using query_points (correct API for qdrant-client >= 1.7)
-            # Note: query parameter accepts vector directly (List[float]) or NamedVector
-            # query_filter is passed separately
             search_result = self.client.query_points(
                 collection_name=self.collection_name,
-                query=vector,  # Pass vector directly
-                query_filter=query_filter,  # Filter passed separately
+                query=vector,
+                query_filter=query_filter,
                 limit=limit,
             )
-
-            # Convert results to DTOs
-            # query_points returns QueryResponse with points attribute
-            results = [
-                SearchResultItemDTO(
-                    object_name=hit.payload.get("object_name", ""),
-                    image_filename=hit.payload.get("image_filename", ""),
-                    user_id=hit.payload.get("user_id", ""),
-                    score=hit.score,
-                    point_id=str(hit.id),
+            
+            if search_result.points:
+                first_scores = [hit.score for hit in search_result.points[:3]]
+                logger.info(
+                    f"Qdrant search results - first few scores: {first_scores}, range: {min(first_scores):.4f} - {max(first_scores):.4f}",
+                    extra={
+                        "first_scores": first_scores,
+                        "score_range": f"{min(first_scores):.4f} - {max(first_scores):.4f}",
+                        "note": "Qdrant COSINE distance returns similarity directly (range: -1 to 1, where 1 = perfect match)",
+                    }
                 )
-                for hit in search_result.points
-            ]
 
-            logger.info(
-                "Search completed",
-                extra={
-                    "results_count": len(results),
-                    "user_id": user_id,
-                }
-            )
+            results = []
+            min_similarity = config.qdrant.min_similarity_threshold
+            
+            for hit in search_result.points:
+                similarity = hit.score
+                
+                if similarity > 1.0 or similarity < -1.0:
+                    logger.warning(
+                        f"Qdrant score out of expected range [-1, 1]: {similarity}",
+                        extra={
+                            "score": similarity,
+                            "object_name": hit.payload.get("object_name", ""),
+                        }
+                    )
+                    similarity = max(-1.0, min(1.0, similarity))
+                
+                logger.info(
+                    f"Processing search result: similarity={similarity:.6f}, object_name={hit.payload.get('object_name', '')}",
+                    extra={
+                        "object_name": hit.payload.get("object_name", ""),
+                        "similarity": similarity,
+                        "image_filename": hit.payload.get("image_filename", ""),
+                    }
+                )
+                
+                if similarity < min_similarity:
+                    logger.warning(
+                        f"FILTERED: similarity {similarity:.4f} below threshold {min_similarity:.4f}",
+                        extra={
+                        "object_name": hit.payload.get("object_name", ""),
+                        "similarity": similarity,
+                        "threshold": min_similarity,
+                        }
+                    )
+                    continue
+                
+                results.append(
+                    SearchResultItemDTO(
+                        object_name=hit.payload.get("object_name", ""),
+                        image_filename=hit.payload.get("image_filename", ""),
+                        user_id=hit.payload.get("user_id", ""),
+                        score=similarity,
+                        point_id=str(hit.id),
+                    )
+                )
+            
+            results.sort(key=lambda x: x.score, reverse=True)
+            
+            if query_text:
+                query_lower = query_text.lower()
+                filtered_relevant = []
+                for hit in search_result.points:
+                    object_name = hit.payload.get("object_name", "").lower()
+                    similarity = hit.score  # Qdrant returns similarity directly
+                    # Check if object name contains query keywords but was filtered
+                    query_keywords = [kw for kw in query_lower.split() if len(kw) > 3]
+                    if any(keyword in object_name for keyword in query_keywords):
+                        if similarity < min_similarity:
+                            filtered_relevant.append({
+                                "object_name": hit.payload.get("object_name", ""),
+                                "similarity": similarity,
+                            })
+                
+                if filtered_relevant:
+                    logger.warning(
+                        f"Relevant images filtered out due to low similarity!",
+                        extra={
+                            "query": query_text,
+                            "filtered_count": len(filtered_relevant),
+                            "min_threshold": min_similarity,
+                            "filtered_images": filtered_relevant,
+                        }
+                    )
+            
+            if results:
+                scores = [r.score for r in results]
+                top_similarities = []
+                for i, hit in enumerate(search_result.points[:min(5, len(search_result.points))]):
+                    top_similarities.append({
+                        "object_name": hit.payload.get("object_name", ""),
+                        "similarity": hit.score,
+                    })
+                
+                import json
+                logger.info(
+                    f"Search completed: results_count={len(results)}, similarity_range={min(scores):.4f}-{max(scores):.4f}, avg_similarity={sum(scores) / len(scores):.4f}, top_similarity={max(scores):.4f}, min_threshold={min_similarity}, top_similarities_sample={json.dumps(top_similarities)}",
+                    extra={
+                        "results_count": len(results),
+                        "user_id": user_id,
+                        "similarity_range": f"{min(scores):.4f} - {max(scores):.4f}",
+                        "avg_similarity": f"{sum(scores) / len(scores):.4f}",
+                        "top_similarity": f"{max(scores):.4f}",
+                        "min_threshold": min_similarity,
+                        "top_similarities_sample": top_similarities,
+                    }
+                )
+            else:
+                logger.info(
+                    "Search completed with no results",
+                    extra={
+                        "user_id": user_id,
+                        "min_threshold": min_similarity,
+                    }
+                )
 
             return results
 
@@ -112,6 +209,5 @@ class QdrantSearchService(VectorSearchService):
             raise
 
 
-# Global instance
 qdrant_search_service = QdrantSearchService()
 

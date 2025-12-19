@@ -5,52 +5,45 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AppConfig(BaseModel):
-    """Application configuration."""
     host: str = "0.0.0.0"
     port: int = 8080
 
 
 class ApiV1Config(BaseModel):
-    """API v1 configuration."""
     prefix: str = "/v1"
     search_prefix: str = "/search"
 
 
 class ApiConfig(BaseModel):
-    """API configuration."""
     prefix: str = "/api"
     v1: ApiV1Config = ApiV1Config()
 
 
 class QdrantConfig(BaseModel):
-    """Qdrant vector database configuration."""
     host: str = "localhost"
     port: int = 6333
     collection_name: str = "image_vectors"
-    search_limit: int = 20  # Default number of results to return
+    search_limit: int = 10
+    min_similarity_threshold: float = 0.21
 
 
 class EndpointConfig(BaseModel):
-    """Single endpoint configuration."""
     name: str
     service_path: str
     summary: Optional[str] = None
 
 
 class ServiceConfig(BaseModel):
-    """External service configuration."""
     name: str
     base_url: str
     endpoints: List[EndpointConfig]
 
 
 class ServicesUrlsConfig(BaseModel):
-    """URLs for external services (can be overridden via .env)."""
     clip_service_url: str = "http://clip-service:8080"
 
 
 class MinIOConfig(BaseModel):
-    """MinIO object storage configuration."""
     endpoint: str = "minio-s3:9000"
     access_key: str = "minioadmin"
     secret_key: str = "minioadmin"
@@ -60,8 +53,6 @@ class MinIOConfig(BaseModel):
 
 
 class Config(BaseSettings):
-    """Main configuration for Search Service."""
-    
     model_config = SettingsConfigDict(
         env_file=".env",
         env_nested_delimiter="__",
@@ -69,7 +60,6 @@ class Config(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
-    
     app: AppConfig = AppConfig()
     api: ApiConfig = ApiConfig()
     qdrant: QdrantConfig = QdrantConfig()
@@ -78,7 +68,6 @@ class Config(BaseSettings):
 
     @property
     def services(self) -> List[ServiceConfig]:
-        """Generate service configurations dynamically."""
         return [
             ServiceConfig(
                 name="clip-service",

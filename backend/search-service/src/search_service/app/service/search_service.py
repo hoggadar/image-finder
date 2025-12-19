@@ -52,14 +52,13 @@ class SearchServiceImpl(ISearchService):
             }
         )
 
-        # Get text embedding from CLIP
         text_embedding = await self.clip_service.get_text_embedding(query)
 
-        # Search similar vectors in Qdrant
         results = await self.vector_search_service.search_by_vector(
             vector=text_embedding,
             limit=limit,
             user_id=user_id,
+            query_text=query,
         )
 
         logger.info(

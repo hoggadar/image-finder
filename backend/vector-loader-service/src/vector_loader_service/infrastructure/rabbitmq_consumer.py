@@ -110,9 +110,16 @@ class RabbitMQConsumer:
                     image_data=image_data,
                     image_filename=image_filename,
                 )
+                # Verify vector normalization (should be unit vector for COSINE distance)
+                import math
+                vector_norm = math.sqrt(sum(x * x for x in image_embedding))
                 logger.info(
                     "Received embedding from CLIP service",
-                    extra={"dimension": len(image_embedding)}
+                    extra={
+                        "dimension": len(image_embedding),
+                        "vector_norm": vector_norm,  # Should be ~1.0 for normalized vectors
+                        "vector_norm_check": "normalized" if abs(vector_norm - 1.0) < 0.01 else "NOT_NORMALIZED",
+                    }
                 )
                 
                 # Use object_name from message if provided, otherwise generate new one
